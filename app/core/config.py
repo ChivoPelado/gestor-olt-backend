@@ -5,9 +5,9 @@ from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Sistema de gestión y administración de OLTs"
-    PROJECT_DESCRIPTION: str =  "API REST para el manejo unificado de la red de acceso GPON. Proyecto de Titulación, Universidad Técnica Particular de Loja (UTPL)"
-    PROJECT_VER: str = "1.0.0"
+    PROJECT_NAME: str
+    PROJECT_DESCRIPTION: str
+    PROJECT_VER: str
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
@@ -22,7 +22,9 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
+    POSTGRES_PORT: str
     DATABASE_URI: Optional[PostgresDsn] = None
+    #DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

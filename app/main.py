@@ -28,10 +28,14 @@ def get_application():
         allow_headers=["*"],
     )
 
+    # Invoca creación de tablas.
+    create_tables()
+
+    # Retorna instancia de la app
     return _app
 
 # Inicialización de la app
 app = get_application()
 
-
-app.include_router(agent.router, prefix="api/v1/", tags=["Agentes"])
+# Rutas!
+app.include_router(agent.router, prefix="/api/v1", tags=["Agentes"])
