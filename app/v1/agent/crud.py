@@ -51,6 +51,7 @@ def update_agent(db: Session, currentAgent: Agent, newAgent: Agent) -> Agent:
     currentAgent.hashed_password = newAgent.hashed_password
     currentAgent.is_active = newAgent.is_active
     currentAgent.role = newAgent.role
+    currentAgent.scopes = newAgent.scopes
     db.commit()
     db.refresh(currentAgent)
     return currentAgent
