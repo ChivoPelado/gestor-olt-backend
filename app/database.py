@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 engine = create_engine(settings.DATABASE_URI, pool_pre_ping=True)
-print(settings.DATABASE_URI)
+
 # (para uso de pruebas)
 # Comentar la linea anterior y decomentar las siguientes 4líneas para uso de sqlite:
 

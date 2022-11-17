@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
 from app.core.config import settings
 
-from app.v1.agent import agent
+from app.apis.base import api_router
+
+def include_router(app):
+    app.include_router(api_router)
+
 
 # Crear tablas en la db
 def create_tables():           
@@ -28,6 +32,8 @@ def get_application():
         allow_headers=["*"],
     )
 
+    # Invoca Rutas
+    include_router(_app)
     # Invoca creación de tablas.
     create_tables()
 
@@ -37,5 +43,4 @@ def get_application():
 # Inicialización de la app
 app = get_application()
 
-# Rutas!
-app.include_router(agent.router, prefix="/api/v1", tags=["Agentes"])
+

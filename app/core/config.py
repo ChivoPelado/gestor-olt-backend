@@ -24,7 +24,6 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
     POSTGRES_PORT: str
     DATABASE_URI: Optional[PostgresDsn] = None
-    #DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

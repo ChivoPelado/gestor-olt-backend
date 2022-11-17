@@ -5,5 +5,5 @@ from pydantic.generics import GenericModel
 DataType = TypeVar("DataType")
 
 class IResponseBase(GenericModel, Generic[DataType]):
-    staus: bool = True
+    status: bool = True
     response: Optional[DataType] = None
