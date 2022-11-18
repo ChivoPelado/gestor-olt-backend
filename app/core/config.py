@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str
     DATABASE_URI: Optional[PostgresDsn] = None
 
+    # Fastapi-Login Secret
+    SECRET: str
+    TOKEN_URL: str = "api/v1/auth/login"
+
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):

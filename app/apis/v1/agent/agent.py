@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Security, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.schemas.agent import AgentCreate, AgentResponse, PaginatedAgentListInfo, AgentAuth, AgentRole
 from app.core.schemas.generic import IResponseBase
+from app.core.utils.security import login_manager
 from app.database import get_db
 from typing import List
 from . import crud
