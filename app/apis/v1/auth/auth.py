@@ -18,7 +18,7 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
 
     user = crud.get_agent(username=email, db=db)
     if not user:
-        # you can return any response or error of your choice
+        # Ajustar respuesta
         raise InvalidCredentialsException
     
     if not Hasher.verify_password(password, user.hashed_password):
@@ -29,5 +29,5 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
 
 
 @router.post('/auth/me', response_model=IResponseBase[AgentResponse])
-def login(db: Session = Depends(get_db), agent: AgentResponse = Depends(login_manager)) -> IResponseBase[AgentResponse]:
+def get_logedin_agent(db: Session = Depends(get_db), agent: AgentResponse = Depends(login_manager)) -> IResponseBase[AgentResponse]:
     return IResponseBase[AgentResponse](response=agent)
