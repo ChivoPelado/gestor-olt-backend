@@ -4,8 +4,10 @@ from app.database import get_db
 from fastapi.security import OAuth2PasswordRequestForm
 from app.apis.v1.auth import crud
 from fastapi_login.exceptions import InvalidCredentialsException
-from app.core.utils.security import verify_password, login_manager
+from app.core.utils.security import Hasher, login_manager
+from app.core.schemas.generic import IResponseBase
 from app.core.schemas.token import Token
+from app.core.schemas.agent import AgentResponse
 
 router = APIRouter()
 
@@ -14,18 +16,18 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
     email = data.username
     password = data.password
 
-    print(email)
-    print(password)
-
     user = crud.get_agent(username=email, db=db)
     if not user:
-        print("invalid 1")
         # you can return any response or error of your choice
         raise InvalidCredentialsException
     
-    if not verify_password(password, user.hashed_password):
-        print("invalid 2")
+    if not Hasher.verify_password(password, user.hashed_password):
         raise InvalidCredentialsException
 
     token = login_manager.create_access_token(data={'sub': user.email})
     return Token(access_token=token, token_type='bearer')
+
+
+@router.post('/auth/me', response_model=IResponseBase[AgentResponse])
+def login(db: Session = Depends(get_db), agent: AgentResponse = Depends(login_manager)) -> IResponseBase[AgentResponse]:
+    return IResponseBase[AgentResponse](response=agent)

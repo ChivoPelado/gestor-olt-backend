@@ -3,8 +3,11 @@ from fastapi_login import LoginManager
 
 login_manager = LoginManager(settings.SECRET, settings.TOKEN_URL)
 
-def hash_password(plaintext: str):
-    return login_manager.pwd_context.hash(plaintext)
+class Hasher:
+    @staticmethod
+    def hash_password(plaintext: str):
+        return login_manager.pwd_context.hash(plaintext)
 
-def verify_password(plaintext: str, hashed: str):
-    return login_manager.pwd_context.verify(plaintext, hashed)
+    @staticmethod
+    def verify_password(plaintext: str, hashed: str):
+        return login_manager.pwd_context.verify(plaintext, hashed)

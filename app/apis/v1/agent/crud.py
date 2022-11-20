@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
-from app.core.utils.hashing import Hasher
+from app.core.utils.security import Hasher
 from app.core.models.agent import Agent
 
 
@@ -21,7 +21,7 @@ def get_agents(db: Session, skip: int = 0, limit: int = 100) -> List[Agent]:
 
 # Crea un nuevo agente
 def create_agent(db: Session, agent: Agent) -> Agent:
-    hash_password = Hasher.get_password_hash(agent.hashed_password)    
+    hash_password = Hasher.hash_password(agent.hashed_password)    
     db_agent = Agent(
         name = agent.name, 
         email = agent.email,
