@@ -1,6 +1,6 @@
 
+import os
 from typing import Any, Dict, List, Optional, Union
-
 from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 
 
@@ -18,6 +18,7 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
+    # Parámetros base de datos
     POSTGRES_SERVER: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
@@ -25,9 +26,11 @@ class Settings(BaseSettings):
     POSTGRES_PORT: str
     DATABASE_URI: Optional[PostgresDsn] = None
 
-    # Fastapi-Login Secret
+    # Parámetros Fastapi-Login 
     SECRET: str
-    TOKEN_URL: str = "api/v1/auth/login"
+    TOKEN_URL: str
+
+    # NTC_TEMPLATES_DIR = os.environ.get("NTC_TEMPLATES_DIR", "app/ntc-templates")
 
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
@@ -40,7 +43,6 @@ class Settings(BaseSettings):
             host=values.get("POSTGRES_SERVER"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
-    
 
     class Config:
         case_sensitive = True

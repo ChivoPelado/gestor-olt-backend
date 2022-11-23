@@ -5,6 +5,8 @@ from app.core.config import settings
 
 from app.apis.base import api_router
 
+from app.core.utils.celery_utils import create_celery
+
 def include_router(app):
     app.include_router(api_router)
 
@@ -37,10 +39,15 @@ def get_application():
     # Invoca creación de tablas.
     create_tables()
 
+    _app.celery_app = create_celery()
+
     # Retorna instancia de la app
     return _app
 
 # Inicialización de la app
 app = get_application()
+celery = app.celery_app
+
+
 
 

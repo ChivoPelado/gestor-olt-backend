@@ -1,0 +1,28 @@
+************************************************
+Welcome to ZXAN product C300 of ZTE Corporation
+************************************************
+
+Last login time is 11.22.2022-16:43:31-utc, 0 authentication failures happened s
+ince that time.
+ZXAN#
+ZXAN#
+ZXAN#terminal length 0
+ZXAN#
+ZXAN#
+ZXAN#show card
+Rack Shelf Slot CfgType RealType Port  HardVer SoftVer         Status
+-------------------------------------------------------------------------------
+1    1     0    PRWG    PRWG     0     V1.0.0                  INSERVICE
+1    1     1    PRWG    PRWG     0     V1.0.0                  INSERVICE
+1    1     2    GTGH    GTGHG    16    V1.0.0  V2.1.0          INSERVICE
+1    1     3    GTGH    GTGHK    16    V1.0.0  V2.1.0          INSERVICE
+1    1     4    GTGH    GTGHK    16    V1.0.0  V2.1.0          INSERVICE
+1    1     5    GTGH    GTGHK    16    V1.0.0  V2.1.0          INSERVICE
+1    1     6    GTGH    GTGHG    16    V1.0.0  V2.1.0          INSERVICE
+1    1     7    GTGH    GTGHK    16    V1.0.0  V2.1.0          INSERVICE
+1    1     10   SCXN    SCXN     4     V1.0.0  V2.1.0          INSERVICE
+1    1     11   SCXN    SCXN     4     V1.0.0  V2.1.0          STANDBY
+1    1     19   HUVQ    HUVQ     4     V1.0.0  V2.1.0          INSERVICE
+1    1     20   HUVQ    HUVQ     4     V1.0.0  V2.1.0          INSERVICE
+ZXAN#
+ZXAN#exit

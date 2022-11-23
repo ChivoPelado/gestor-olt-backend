@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from fastapi.security import OAuth2PasswordRequestForm
@@ -22,12 +22,17 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
         raise InvalidCredentialsException
     
     if not Hasher.verify_password(password, user.hashed_password):
-        raise InvalidCredentialsException
+        raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciales proporcionadas inválidas",
+        headers={"WWW-Authenticate": "Bearer"}
+) 
+        #InvalidCredentialsException
 
     token = login_manager.create_access_token(data={'sub': user.email})
     return Token(access_token=token, token_type='bearer')
 
 
-@router.post('/auth/me', response_model=IResponseBase[AgentResponse])
+@router.get('/auth/me', response_model=IResponseBase[AgentResponse])
 def get_logedin_agent(db: Session = Depends(get_db), agent: AgentResponse = Depends(login_manager)) -> IResponseBase[AgentResponse]:
     return IResponseBase[AgentResponse](response=agent)

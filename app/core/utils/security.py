@@ -8,6 +8,5 @@ class Hasher:
     def hash_password(plaintext: str):
         return login_manager.pwd_context.hash(plaintext)
 
-    @staticmethod
     def verify_password(plaintext: str, hashed: str):
         return login_manager.pwd_context.verify(plaintext, hashed)
