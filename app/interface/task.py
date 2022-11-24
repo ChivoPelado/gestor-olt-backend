@@ -1,10 +1,10 @@
 from typing import Protocol
-from app.core.schemas.system import Onu
+from app.interface.utils import Payload
 
 
 class Task(Protocol):
     description: str
-    onu: Onu
+    payload: Payload
 
     def execute(self):
         ...

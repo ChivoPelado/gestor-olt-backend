@@ -19,7 +19,7 @@ def create_celery():
 
 def get_task_info(task_id):
     """
-    Retorna información de la tarea en base a un task_id
+    Retorna información de la tarea en base a un id (task_id)
     """
     task_result = AsyncResult(task_id)
     result = {

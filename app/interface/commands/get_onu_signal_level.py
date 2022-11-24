@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from app.interface.protocols.snmp import get_request
 from app.interface.task import Task
-from app.core.schemas.system import Onu
+from app.interface.utils import Payload
 from app.interface.utils import (
-    decode_gpon_onu_index,
     encoded_gpon_onu_index
 )
 
@@ -16,20 +15,16 @@ zte_mib = {
 
 @dataclass
 class OnuSignal(Task):
-    onu: Onu
+    payload: Payload
     description = "Get ONU signal"
-
-    @property
-    def olt(self):
-        return self.onu.olt
 
     def execute(self):
 
-        olt_rx_oid = zte_mib['olt_rx'] + encoded_gpon_onu_index(self.onu)
-        onu_rx_oid = zte_mib['onu_rx'] + encoded_gpon_onu_index(self.onu) + '.1'
+        olt_rx_oid = zte_mib['olt_rx'] + encoded_gpon_onu_index(self.payload)
+        onu_rx_oid = zte_mib['onu_rx'] + encoded_gpon_onu_index(self.payload) + '.1'
 
         try:
-            result = get_request(self.olt.ip_address, [olt_rx_oid, onu_rx_oid], self.olt.snmp_read_com, self.olt.snmp_port)
+            result = get_request(self.payload.olt_ip_address, [olt_rx_oid, onu_rx_oid], self.payload.snmp_read_com, self.payload.snmp_port)
 
             onu_signal_1490 = round((int(result[olt_rx_oid]) / 1000), 2)
             onu_signal_1310 = self._get_onu_rx(int(result[onu_rx_oid]))

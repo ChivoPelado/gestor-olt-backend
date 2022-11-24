@@ -10,7 +10,7 @@ from app.core.utils.security import login_manager
 def get_agent(username: str, db: Optional[Session] = None, session_provider: Callable[[], Iterator[Session]] = None) -> Optional[Agent]:
 
     if db is None and session_provider is None:
-        raise ValueError("db and session none")
+        raise ValueError("No existe una sesión o conexión de base de datos activa")
 
     if db is None:
         db = next(session_provider())

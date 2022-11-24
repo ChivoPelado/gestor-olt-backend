@@ -12,7 +12,7 @@ class OltController:
     _history = []
 
     def get(self, task: Task) -> None:
-        self._history.append((time.time(), task.description, str(task.onu), str(task.onu.olt)))
+        self._history.append((time.time(), task.description, str(task.payload.onu_interface), str(task.payload.olt_name)))
         return task.execute()
 
     def register(self, task: Task) -> None:

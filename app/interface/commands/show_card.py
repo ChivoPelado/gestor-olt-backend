@@ -24,14 +24,7 @@ def send_show_command(device, commands):
 def get_olt():
 
     device = {
-        "device_type": "zte_zxros",
-        "host": "200.24.155.121",
-        "port": 2217,
-        "username": "aherrera",
-        "password": "CableFAM2022*",
-        "conn_timeout": 30,
-        "global_delay_factor": 5,
-        "session_log": "logging.txt"
+## DEFINIR PARAMETROS DE CONEXION
     }
 
     result = send_show_command(device, ["show card"])

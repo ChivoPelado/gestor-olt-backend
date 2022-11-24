@@ -11,7 +11,7 @@ from app.core.schemas.agent import AgentResponse
 
 router = APIRouter()
 
-@router.post('/auth/login', response_model=Token)
+@router.post('/login', response_model=Token)
 def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depends()) -> Token:
     email = data.username
     password = data.password
@@ -33,6 +33,6 @@ def login(db: Session = Depends(get_db), data: OAuth2PasswordRequestForm = Depen
     return Token(access_token=token, token_type='bearer')
 
 
-@router.get('/auth/me', response_model=IResponseBase[AgentResponse])
+@router.get('/me', response_model=IResponseBase[AgentResponse])
 def get_logedin_agent(db: Session = Depends(get_db), agent: AgentResponse = Depends(login_manager)) -> IResponseBase[AgentResponse]:
     return IResponseBase[AgentResponse](response=agent)
