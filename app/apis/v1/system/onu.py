@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.apis.v1.system import onu_crud
 from app.core.schemas.system import OnuResponse, OnuCreate
-from app.core.models.system import Onu, Olt
+from app.core.models.system import Onu, Olt, Port, Card
 from app.celery_task.tasks import get_onu_signal_level
 from app.core.schemas.generic import IResponseBase
 from app.interface.utils import Payload
@@ -27,9 +27,13 @@ def get_onu_signal(ext_id: int,  db: Session = Depends(get_db)) -> dict:
     """
     Retorna la potencia óptica de la ONU
     """
-    db_onu = db.query(Onu).join(Olt, Onu.olt_id == Olt.id).filter(Onu.ext_id == ext_id).first()
 
-    connection_payload = Payload(
+    ##db_onu = db.query(Onu).join(Olt, Onu.olt_id == Olt.id).filter(Onu.ext_id == ext_id).first()
+    # db_onu = db.query(Card).join(Olt, Card.olt_id == Olt.id).filter(Onu.ext_id == ext_id).first()
+    db_onu = db.query(Onu).join(Port, Onu.port_id == Port.id).filter(Onu.ext_id == ext_id).first()
+   
+    print(db_onu.port.card)
+    """     connection_payload = Payload(
         olt_type = "ZTE",
         olt_name = db_onu.olt.name,
         olt_ip_address = db_onu.olt.ip_address,
@@ -47,6 +51,6 @@ def get_onu_signal(ext_id: int,  db: Session = Depends(get_db)) -> dict:
     )
 
     task = get_onu_signal_level.apply_async(args=[connection_payload])
-    res = task.get(disable_sync_subtasks=False)
+    res = task.get(disable_sync_subtasks=False) """
 
-    return res
+    return db_onu

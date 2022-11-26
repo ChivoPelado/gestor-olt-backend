@@ -1,13 +1,13 @@
 Value RACK (\d+)
 Value SHELF (\d+)
 Value SLOT (\d+)
-Value CFGTYPE (PRWG|GTGH|SCXN|HUVQ)
-Value REALTYPE (PRWG|GTGHG|GTGHK|SCXN|HUVQ)
+Value CFG_TYPE (PRWG|GTGH|SCXN|HUVQ)
+Value REAL_TYPE (PRWG|GTGHG|GTGHK|SCXN|HUVQ)
 Value PORT (\d+)
-Value HARDVER (V\S+)
-Value SOFTVER (V\S+)
+Value HARDWARE_VER (V\S+)
+Value SOFTWARE_VER (V\S+)
 Value STATUS (INSERVICE|STANDBY)
 
 Start
-  ^${RACK}\s+${SHELF}\s+${SLOT}\s+${CFGTYPE}\s+${REALTYPE}\s+${PORT}\s+${HARDVER}\s\s${SOFTVER}\s+${STATUS} -> Record
-  ^${RACK}\s+${SHELF}\s+${SLOT}\s+${CFGTYPE}\s+${REALTYPE}\s+${PORT}\s+${HARDVER}\s+${STATUS} -> Record
+  ^${RACK}\s+${SHELF}\s+${SLOT}\s+${CFG_TYPE}\s+${REAL_TYPE}\s+${PORT}\s+${HARDWARE_VER}\s\s${SOFTWARE_VER}\s+${STATUS} -> Record
+  ^${RACK}\s+${SHELF}\s+${SLOT}\s+${CFG_TYPE}\s+${REAL_TYPE}\s+${PORT}\s+${HARDWARE_VER}\s+${STATUS} -> Record

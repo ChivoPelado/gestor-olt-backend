@@ -59,11 +59,12 @@ class Onu(BaseModel):
 class OnuResponse(BaseModel):
     id: int
     olt_id: int
+    port_id: int
     ext_id: int
     pon_type: str
     shelf: int
     slot: int
-    port: int
+    port_no: int
     index: int
     serial_no: str
     vlan: int
@@ -80,14 +81,34 @@ class Onu(OnuResponse):
 
 class OnuCreate(BaseModel): 
     olt_id: int
+    port_id: int
     ext_id: int
     pon_type: str
     shelf: int
     slot: int
-    port: int
+    port_no: int
     index: int
     serial_no: str
     vlan: int
     name: str
     comment: str
     onu_mode: str
+
+    class Config:
+        orm_mode = True
+
+
+class PortCreate(BaseModel):
+    card_id: int
+    port_no: int
+    pon_type: str
+    admin_status: str 
+    operation_status: str 
+    description: str 
+    tx_power: int 
+    onu_count: int
+    online_onu_count: int
+    average_onu_signal: int
+
+class PortResponse(PortCreate):
+    id: int

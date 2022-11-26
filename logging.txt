@@ -2,7 +2,7 @@
 Welcome to ZXAN product C300 of ZTE Corporation
 ************************************************
 
-Last login time is 11.22.2022-22:40:03-utc, 0 authentication failures happened s
+Last login time is 11.25.2022-18:08:23-utc, 0 authentication failures happened s
 ince that time.
 ZXAN#
 ZXAN#
