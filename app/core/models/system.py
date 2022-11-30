@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, select, func
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.database import Base
 from sqlalchemy.sql import func
 
@@ -21,7 +22,9 @@ class Olt(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-
+    cards = relationship("Card", backref="olt")
+    onus = relationship("Onu", backref="olt")
+    
 
 class Card(Base):
     __tablename__ = "card"
@@ -38,7 +41,7 @@ class Card(Base):
     software_ver = Column(String)
     status = Column(String, nullable=False)
     
-    olt = relationship("Olt", backref="card")
+    ports = relationship("Port", backref="card")
 
 class Port(Base):
     __tablename__ = "port"
@@ -52,13 +55,30 @@ class Port(Base):
     description = Column(String)
     tx_power = Column(String)
     onu_count = Column(Integer, nullable=False)
-    online_onu_count = Column(Integer, nullable=False)
     average_onu_signal = Column(Integer, nullable=False)
     
-    # olt = relationship("Card", backref="port")
-   # onus = relationship("Onu")
+    onus = relationship("Onu", backref="port")
 
-    ##onus = relationship("Onu")
+    @hybrid_property
+    def online_onu_count(self):
+        return sum(onu.status == "Online" for onu in self.onus)
+
+    @hybrid_property
+    def offline_onu_count(self):
+        return sum(onu.status == "Offline" for onu in self.onus)
+
+    @online_onu_count.expression
+    def online_onu_count(cls):
+        return select(func.count(1).filter(Onu.status == "Online")). \
+            where(Onu.port_id == cls.id). \
+            label('online_onu_count') 
+
+    @offline_onu_count.expression
+    def offline_onu_count(cls):
+        return select(func.count(1).filter(Onu.status == "Offline")). \
+            where(Onu.port_id == cls.id). \
+            label('online_onu_count') 
+
 
 class Onu(Base):
     __tablename__ = "onu"
@@ -75,34 +95,15 @@ class Onu(Base):
     serial_no = Column(String, unique=True, index=True, nullable=False)
     vlan = Column(Integer, nullable=False)
     name = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    signal = Column(String, nullable=False)
     comment = Column(String, nullable=False)
     onu_mode = Column(String, nullable=False, default="Routing")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    port = relationship("Port", backref="onu")
-    # olt = relationship("Olt")
 
     def __str__(self):
         return f"gpon-onu_{self.shelf}/{self.slot}/{self.port}:{self.index}"
-
-
-
-""" class Port(Base):
-    __tablename__ = "port"
-
-    id = Column(Integer, primary_key=True, index=True)
-    card_id = Column(Integer, ForeignKey("card.id"))
-    port_no = Column(Integer, nullable=False)
-    pon_type = Column(String, nullable=False)
-    admin_status = Column(String, nullable=False)
-    operation_status = Column(String, nullable=False)
-    description = Column(String)
-    tx_power = Column(String)
-    onu_count = Column(Integer, nullable=False)
-    online_onu_count = Column(Integer, nullable=False)
-    average_onu_signal = Column(Integer, nullable=False)
-    
-    olt = relationship("Olt", backref="port")
-    onus = relationship("Onu") """
+        
 

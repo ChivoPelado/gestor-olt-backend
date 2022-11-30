@@ -69,6 +69,8 @@ class OnuResponse(BaseModel):
     serial_no: str
     vlan: int
     name: str
+    status: str
+    signal: str
     comment: str
     onu_mode: str
     created_at: Optional[datetime]
@@ -91,6 +93,8 @@ class OnuCreate(BaseModel):
     serial_no: str
     vlan: int
     name: str
+    status: str
+    signal: str
     comment: str
     onu_mode: str
 
@@ -98,17 +102,26 @@ class OnuCreate(BaseModel):
         orm_mode = True
 
 
-class PortCreate(BaseModel):
-    card_id: int
+class PortResponse(BaseModel):
     port_no: int
     pon_type: str
     admin_status: str 
     operation_status: str 
     description: str 
-    tx_power: int 
+    tx_power: str 
     onu_count: int
     online_onu_count: int
+    offline_onu_count: int
     average_onu_signal: int
 
-class PortResponse(PortCreate):
-    id: int
+    class Config:
+        orm_mode = True
+
+
+class CardResponse(BaseModel):
+    slot: int
+    cfg_type: str
+    ports: List[PortResponse]
+
+    class Config:
+        orm_mode = True

@@ -16,6 +16,8 @@ def authorize_onu(db: Session, onu: Onu) -> Onu:
         serial_no = onu.serial_no,
         vlan = onu.vlan,
         name = str(onu.name).replace(" ", "_"),
+        status = onu.status,
+        signal = onu.signal,
         comment = str(onu.comment).replace(" ", "_"),
         onu_mode = onu.onu_mode,
     )
