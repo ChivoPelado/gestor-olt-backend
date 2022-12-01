@@ -1,10 +1,12 @@
+"""
+ads
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.apis.v1.system import olt_crud
-from app.core.schemas.system import OltCreate, OltResponse, PortResponse, CardResponse
+from app.core.schemas.system import OltCreate, OltResponse, CardResponse
 from app.core.models.system import Card, Port, Olt
-from app.interface.commands import show_card
 from app.core.schemas.generic import IResponseBase
 
 router = APIRouter()

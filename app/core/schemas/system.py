@@ -1,7 +1,10 @@
-from typing import Any, Generic, List, Optional, TypeVar
-from pydantic import BaseModel
-from pydantic.generics import GenericModel
+"""
+Modelado del módulo Sistema
+"""
+from typing import List, Optional
 from datetime import datetime
+from pydantic import BaseModel
+
 
 ##############################
 # Esquemas de OLT

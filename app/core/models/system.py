@@ -1,11 +1,15 @@
+"""
+Definición de los modelos de sistema (OLT, Card, Port, ONU)
+"""
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, select, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.database import Base
-from sqlalchemy.sql import func
-
 
 class Olt(Base):
+    """
+    Modelo OLT, Representa al equipo OLT
+    """
     __tablename__ = "olt"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -24,9 +28,11 @@ class Olt(Base):
 
     cards = relationship("Card", backref="olt")
     onus = relationship("Onu", backref="olt")
-    
 
 class Card(Base):
+    """
+    Modelo Card, representa una tarjeta (Board) de la OLT
+    """
     __tablename__ = "card"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -40,10 +46,13 @@ class Card(Base):
     hardware_ver = Column(String)
     software_ver = Column(String)
     status = Column(String, nullable=False)
-    
+
     ports = relationship("Port", backref="card")
 
 class Port(Base):
+    """
+    Modelo Port, representa uno delos puertos (Port) de una tarjeta (Board) de la OLT
+    """
     __tablename__ = "port"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -56,31 +65,37 @@ class Port(Base):
     tx_power = Column(String)
     onu_count = Column(Integer, nullable=False)
     average_onu_signal = Column(Integer, nullable=False)
-    
+
     onus = relationship("Onu", backref="port")
 
     @hybrid_property
     def online_onu_count(self):
+        """Retorna la cantidad de ONUs en estado Online"""
         return sum(onu.status == "Online" for onu in self.onus)
 
     @hybrid_property
     def offline_onu_count(self):
+        """Retorna la cantidad de ONUs en estado Offline"""
         return sum(onu.status == "Offline" for onu in self.onus)
 
     @online_onu_count.expression
-    def online_onu_count(cls):
+    def online_onu_count(self, cls):
+        """Retorna la cantidad de ONUs en estado Online en expresion SQL"""
         return select(func.count(1).filter(Onu.status == "Online")). \
             where(Onu.port_id == cls.id). \
-            label('online_onu_count') 
+            label('online_onu_count')
 
     @offline_onu_count.expression
-    def offline_onu_count(cls):
+    def offline_onu_count(self, cls):
+        """Retorna la cantidad de ONUs en estado Offline en expresion SQL"""
         return select(func.count(1).filter(Onu.status == "Offline")). \
             where(Onu.port_id == cls.id). \
-            label('online_onu_count') 
-
+            label('online_onu_count')
 
 class Onu(Base):
+    """
+    Modelo Onu, representa una ONU autorizada en la OLT
+    """
     __tablename__ = "onu"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -102,8 +117,5 @@ class Onu(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-
     def __str__(self):
-        return f"gpon-onu_{self.shelf}/{self.slot}/{self.port}:{self.index}"
-        
-
+        return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"

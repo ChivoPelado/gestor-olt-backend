@@ -28,11 +28,11 @@ def create_agent(db: Session, agent: Agent) -> Agent:
         hashed_password = hash_password,
         is_active = agent.is_active,
         role = agent.role.value,
-        scopes = agent.scopes  
+        scopes = agent.scopes
     )
     db.add(db_agent)
     db.commit()
-    db.refresh(db_agent) 
+    db.refresh(db_agent)
     return db_agent
 
 
