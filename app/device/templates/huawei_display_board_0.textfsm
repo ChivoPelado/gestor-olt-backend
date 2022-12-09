@@ -1,0 +1,13 @@
+Value SLOT (\d+)
+Value TYPE (\S+)
+Value STATUS (\S+)
+Value SUBTYPE0 (\S+)
+Value SUBTYPE1 (\S+)
+Value ONOFF (\S+)
+
+Start
+  ^\s+${SLOT}\s+${TYPE}\s+${STATUS}\s+${SUBTYPE0}\s+${SUBTYPE1}\s+${ONOFF}\s+ -> Record
+  ^\s+${SLOT}\s+${TYPE}\s+${STATUS}\s+${SUBTYPE0}\s+${SUBTYPE1}\s+ -> Record
+  ^\s+${SLOT}\s+${TYPE}\s+${STATUS}\s+${SUBTYPE0}\s+ -> Record
+  ^\s+${SLOT}\s+${TYPE}\s+${STATUS}\s+ -> Record
+  # ^\s+${SLOT}\s+ -> Record #  COMENTADO PARA NO EXTRAER RANURAS VACIAS.

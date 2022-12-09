@@ -12,9 +12,9 @@ from pydantic import BaseModel
 class OltResponse(BaseModel):
     id: int
     name: str
-    ip_address: str
-    ssh_port: int
-    ssh_user: str
+    host: str
+    telnet_port: int
+    telnet_user: str
     snmp_port: int
     hardware_ver: str 
     software_ver: str
@@ -24,13 +24,13 @@ class OltResponse(BaseModel):
 
 class OltCreate(BaseModel):
     name: str
-    ip_address: str
-    ssh_port: int
-    ssh_user: str
+    host: str
+    telnet_port: int
+    telnet_user: str
+    telnet_password: str
     snmp_port: int
     hardware_ver: str 
     software_ver: str
-    ssh_password: str
     snmp_read_com: str
     snmp_write_com: str
 
@@ -106,7 +106,8 @@ class OnuCreate(BaseModel):
 
 
 class PortResponse(BaseModel):
-    port_no: int
+    slot: int
+    port: int
     pon_type: str
     admin_status: str 
     operation_status: str 
@@ -123,8 +124,11 @@ class PortResponse(BaseModel):
 
 class CardResponse(BaseModel):
     slot: int
-    cfg_type: str
-    ports: List[PortResponse]
+    type: str
+    real_type: str
+    port: int
+    soft_ver: str
+    updated_at: Optional[datetime]
 
     class Config:
         orm_mode = True

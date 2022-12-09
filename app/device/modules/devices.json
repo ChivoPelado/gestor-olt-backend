@@ -1,0 +1,50 @@
+{
+  "modules": [
+    "app.device.modules.huawei", 
+    "app.device.modules.zte"
+  ],
+  "devices": [
+    {
+      "type": "huawei",
+      "hardware_ver": "Huawei-MA5800-X15",
+      "device_type": "huawei_olt_telnet",
+      "software_ver" :["R018"],
+      "pon_type" :["GPON"],
+      "port_begin": 0,
+      "cards": [
+        {"name": "H901GPHF", "ports": 16, "role": "GPON"},
+        {"name": "H902GPHF", "ports": 16, "role": "GPON"},
+        {"name": "H901GPSF", "ports": 16, "role": "GPON"},
+        {"name": "H902GPSF", "ports": 16, "role": "GPON"},
+        {"name": "H902MPLA", "ports": 4, "role": "CONTROL"},
+        {"name": "H901MPLA", "ports": 4, "role": "CONTROL"},
+        {"name": "H901PILA", "ports": 0, "role": "POWER"},
+        {"name": "H902PILA", "ports": 0, "role": "POWER"}
+      ],
+      "command": {
+        "get_uncfg_onu": "display ont autofind all",
+        "get_cards": "display board 0",
+        "get_onu_types": "display ont-srvprofile gpon all"
+      }
+    },
+    {
+      "type": "zte",
+      "hardware_ver": "ZTE-C300",
+      "device_type": "zte_zxros_telnet",
+      "software_ver" :["2.x"],
+      "pon_type" :["GPON"],
+      "port_begin": 1,
+      "cards": [
+        {"name": "GTGH", "ports": 16, "role": "GPON"},
+        {"name": "SCXN", "ports": 4, "role": "CONTROL"},
+        {"name": "PRWG", "ports": 0, "role": "POWER"},
+        {"name": "HUVQ", "ports": 4, "role": "UPLINK"}
+      ],
+      "command": {
+        "get_uncfg_onu": "show pon onu uncfg",
+        "get_cards": "show card",
+        "get_onu_types": "show onu-type gpon"
+      }
+    }
+  ]
+}

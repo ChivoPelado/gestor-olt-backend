@@ -4,10 +4,10 @@ ads
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.apis.v1.system import olt_crud
 from app.core.schemas.system import OltCreate, OltResponse, CardResponse
 from app.core.models.system import Card, Port, Olt
 from app.core.schemas.generic import IResponseBase
+from . import olt_crud
 
 router = APIRouter()
 
@@ -32,7 +32,8 @@ async def create_olt(olt: OltCreate, db: Session = Depends(get_db)):
     :param olt: OltCreate Model.
     :param db: DataBase Session.
     """
-    if not olt_crud.vlidate_used_ports(db=db, olt_ip=olt.ip_address, olt_ssh_port=olt.ssh_port, olt_snmp_port=olt.snmp_port):
+
+    if not olt_crud.vlidate_used_ports(db=db, olt_ip=olt.host, telnet_port=olt.telnet_port, snmp_port=olt.snmp_port):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, 
             detail="IP y puertos ingresados estan siendo utilizados por otra OLT"
@@ -40,12 +41,14 @@ async def create_olt(olt: OltCreate, db: Session = Depends(get_db)):
     new_olt = await olt_crud.create_olt(db, olt=olt)
     return IResponseBase[OltResponse](response=new_olt)
 
+
 @router.get("/olt/get_cards/{olt_id}")
 async def get_olt_cards_detail(olt_id:int, db: Session = Depends(get_db)): 
     olt = db.query(Olt).filter(Olt.id == olt_id).first()
     return olt.cards
     # db.add(Port(**dict(port)))
     # db.commit()
+
 
 @router.get("/olt/get_ports/{olt_id}", response_model=list[CardResponse])
 async def get_olt_port_detail(olt_id:int, db: Session = Depends(get_db)): 
@@ -58,6 +61,11 @@ async def get_olt_port_detail(olt_id:int, db: Session = Depends(get_db)):
 
     return db_card
 
+
+@router.get("/olt/test_point/{olt_id}")
+async def test_point(olt_id:int, db: Session = Depends(get_db)): 
+    response = await olt_crud.test_point(db, olt_id)
+    return response
 
    
     """ 

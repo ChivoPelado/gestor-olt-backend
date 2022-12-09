@@ -1,0 +1,15 @@
+Value SHELF (\d+)
+Value SLOT (\d+)
+Value PORT (\d+)
+Value INDEX (\d+)
+Value SN (\S+)
+Value TYPE (\S+)
+Value TIME (\S+)
+Value DATE (\S+)
+
+Start
+  ^\s+Number\s+: ${INDEX}
+  ^\s+F/S/P\s+: ${SHELF}/${SLOT}/${PORT}
+  ^\s+Ont SN\s+: \S+ \(${SN}\)
+  ^\s+Ont EquipmentID\s+: ${TYPE} 
+  ^\s+Ont autofind time\s+: ${DATE} ${TIME} -> Record

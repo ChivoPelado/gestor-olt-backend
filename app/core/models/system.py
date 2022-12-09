@@ -14,10 +14,10 @@ class Olt(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    ip_address = Column(String, nullable=False)
-    ssh_port = Column(Integer, nullable=False)
-    ssh_user = Column(String, nullable=False)
-    ssh_password = Column(String, nullable=False)
+    host = Column(String, nullable=False)
+    telnet_port = Column(Integer, nullable=False)
+    telnet_user = Column(String, nullable=False)
+    telnet_password = Column(String, nullable=False)
     snmp_port = Column(Integer, nullable=False)
     snmp_read_com = Column(String, nullable=False)
     snmp_write_com = Column(String, nullable=False)
@@ -29,6 +29,16 @@ class Olt(Base):
     cards = relationship("Card", backref="olt")
     onus = relationship("Onu", backref="olt")
 
+    @hybrid_property
+    def connection_params(self):
+        """Retorna los parametros de conexion a la OLT"""
+        return {
+            "host": self.host,
+            "port": self.telnet_port,
+            "username": self.telnet_user,
+            "password": self.telnet_password
+        }
+
 class Card(Base):
     """
     Modelo Card, representa una tarjeta (Board) de la OLT
@@ -37,15 +47,18 @@ class Card(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     olt_id = Column(Integer, ForeignKey("olt.id"))
-    rack = Column(Integer, nullable=False)
-    shelf = Column(Integer, nullable=False)
+    #rack = Column(Integer, nullable=False)
+    #shelf = Column(Integer, nullable=False)
     slot = Column(Integer, nullable=False)
-    cfg_type = Column(String)
+    type = Column(String)
     real_type = Column(String)
     port = Column(Integer, nullable=False)
-    hardware_ver = Column(String)
-    software_ver = Column(String)
+    #hardware_ver = Column(String)
+    soft_ver = Column(String)
     status = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
 
     ports = relationship("Port", backref="card")
 
@@ -57,14 +70,15 @@ class Port(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     card_id = Column(Integer, ForeignKey("card.id"))
-    port_no = Column(Integer, nullable=False)
+    slot = Column(Integer, nullable=False)
+    port = Column(Integer, nullable=False)
     pon_type = Column(String, nullable=False)
-    admin_status = Column(String, nullable=False)
-    operation_status = Column(String, nullable=False)
+    admin_status = Column(String, nullable=False, default="n/a")
+    operation_status = Column(String, nullable=False, default="n/a")
     description = Column(String)
-    tx_power = Column(String)
-    onu_count = Column(Integer, nullable=False)
-    average_onu_signal = Column(Integer, nullable=False)
+    tx_power = Column(String, nullable=False, default="n/a")
+    onu_count = Column(Integer, nullable=False, default=0)
+    average_onu_signal = Column(Integer, nullable=False, default=0)
 
     onus = relationship("Onu", backref="port")
 

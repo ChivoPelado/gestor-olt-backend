@@ -1,73 +1,143 @@
+"""
+CRUD para la gestión de Agentes
+"""
 from typing import List
 from sqlalchemy.orm import Session
 from app.core.utils.security import Hasher
 from app.core.models.agent import Agent
 
 
-# Devuelve agente desde el id
-def get_agent(db: Session, agent_id: int) -> Agent:
-    return db.query(Agent).filter(Agent.id == agent_id).first()
+def get_agent(db_session: Session, agent_id: int) -> Agent:
+    """Retorna Agente desde la base de datos en base al ID
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        agent_id (int): ID de agente
+
+    Returns:
+        Agent: Objeto Agente desde la base de datos
+    """
+
+    return db_session.query(Agent).filter(Agent.id == agent_id).first()
 
 
-# Devuelve agente desde el email
-def get_agent_by_email(db: Session, email: str) -> Agent:
-    return db.query(Agent).filter(Agent.email == email).first()
+def get_agent_by_email(db_session: Session, email: str) -> Agent:
+    """Retorna Agente desde la base de datos en base al email de agente
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        email (str): Dirección email registrada de agente
+
+    Returns:
+        Agent: Objeto Agente desde la base de datos
+    """
+
+    return db_session.query(Agent).filter(Agent.email == email).first()
 
 
 # Devuelve todos los agentes
-def get_agents(db: Session, skip: int = 0, limit: int = 100) -> List[Agent]:
-    return db.query(Agent).offset(skip).limit(limit).all()
-    
+def get_agents(db_session: Session, skip: int = 0, limit: int = 100) -> List[Agent]:
+    """Retorna todos los agentes registrados desde la base de datos
 
-# Crea un nuevo agente
-def create_agent(db: Session, agent: Agent) -> Agent:
-    hash_password = Hasher.hash_password(agent.hashed_password)    
+    Args:
+        db_session (Session): Sesión de la base de datos
+        skip (int, optional): Saltos de páginas. Defaults to 0.
+        limit (int, optional): Cantidad máxima de resultados a devolver. Defaults to 100.
+
+    Returns:
+        List[Agent]: Lista de Agentes registrados en la base de datos
+    """
+
+    return db_session.query(Agent).offset(skip).limit(limit).all()
+
+
+
+def create_agent(db_session: Session, agent: Agent) -> Agent:
+    """Gestión de creación de un nuevo agente en la base de datos
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        agent (Agent): Objeto Agente
+
+    Returns:
+        Agent: Objeto Agente desde la base de datos
+    """
+
+    hash_password = Hasher.hash_password(agent.hashed_password)
     db_agent = Agent(
-        name = agent.name, 
+        name = agent.name,
         email = agent.email,
         hashed_password = hash_password,
         is_active = agent.is_active,
         role = agent.role.value,
         scopes = agent.scopes
     )
-    db.add(db_agent)
-    db.commit()
-    db.refresh(db_agent)
+    db_session.add(db_agent)
+    db_session.commit()
+    db_session.refresh(db_agent)
     return db_agent
 
 
-# Elimina agente desde el id
-def delete_agent(db: Session, agent: Agent):
-    db_agent = get_agent(db, agent.id)
-    db.delete(db_agent)
-    db.commit()
-    
+# Revisar proceso....
+def delete_agent(db_session: Session, agent: Agent) -> None:
+    """Elimina un agente desde un objeto Agente entregado
 
-# Actualiza agente dese el id
-def update_agent(db: Session, currentAgent: Agent, newAgent: Agent) -> Agent:
-
-    currentAgent.email = newAgent.email
-    currentAgent.name = newAgent.name
-    currentAgent.hashed_password = newAgent.hashed_password
-    currentAgent.is_active = newAgent.is_active
-    currentAgent.role = newAgent.role
-    currentAgent.scopes = newAgent.scopes
-    db.commit()
-    db.refresh(currentAgent)
-    return currentAgent
+    Args:
+        db_session (Session): Sesión de la base de datos
+        agent (Agent): Objeto Agente
+    """
+    db_agent = get_agent(db_session, agent.id)
+    db_session.delete(db_agent)
+    db_session.commit()
 
 
-# Activa un agente
-def activate_agent(db: Session, agent: Agent):
-    db_agent = db_agent = get_agent(db, agent.id)
+def update_agent(db_session: Session, current_agent: Agent, new_agent: Agent) -> Agent:
+    """Actualiza un Agente desde un Objeto agente provisto
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        current_agent (Agent): Objeto Agente a editar
+        new_agent (Agent): Objeto Agente con los acmbios a aplicar
+
+    Returns:
+        Agent: Agente editado
+    """
+
+    current_agent.email = new_agent.email
+    current_agent.name = new_agent.name
+    current_agent.hashed_password = Hasher.hash_password(new_agent.hashed_password)
+    current_agent.is_active = new_agent.is_active
+    current_agent.role = new_agent.role
+    current_agent.scopes = new_agent.scopes
+    db_session.commit()
+    db_session.refresh(current_agent)
+    return current_agent
+
+
+
+def activate_agent(db_session: Session, agent: Agent) -> None:
+    """Activa a un agente desactivado
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        agent (Agent): Objeto Agente
+    """
+
+    db_agent = db_agent = get_agent(db_session, agent.id)
     db_agent.is_active = True
-    db.commit()
-    db.refresh(db_agent)
-    
-    
-# Desactiva un agente   
-def deactivate_agent(db: Session, agent: Agent):
-    db_agent = db_agent = get_agent(db, agent.id)
+    db_session.commit()
+    db_session.refresh(db_agent)
+
+
+def deactivate_agent(db_session: Session, agent: Agent):
+    """Desactiva a un agente activo
+
+    Args:
+        db_session (Session): Sesión de la base de datos
+        agent (Agent): Objeto Agente
+    """
+
+    db_agent = db_agent = get_agent(db_session, agent.id)
     db_agent.is_active = False
-    db.commit()
-    db.refresh(db_agent)
+    db_session.commit()
+    db_session.refresh(db_agent)

@@ -1,0 +1,12 @@
+Value TYPE_NAME (\S+)
+Value PON_TYPE (\S+)
+Value DESCIRPTION (\S+)
+Value MAX_T_CONT (\d+)
+Value MAX_GEM (\d+)
+
+Start
+  ^ONU type name:\s+${TYPE_NAME}
+  ^PON type:\s+${PON_TYPE}
+  ^Description:\s+${DESCIRPTION}
+  ^Max T-CONT:\s+${MAX_T_CONT} 
+  ^Max GEM port:\s+${MAX_GEM} -> Record

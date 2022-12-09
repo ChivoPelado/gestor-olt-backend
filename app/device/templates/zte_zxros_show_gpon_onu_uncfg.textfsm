@@ -1,0 +1,9 @@
+Value RACK (\d+)
+Value SLOT (\d+)
+Value PORT (\d+)
+Value INDEX (\d+)
+Value SN (\S+)
+Value STATE (\S+)
+
+Start
+  ^gpon-onu_${RACK}/${SLOT}/${PORT}:${INDEX}\s+${SN}\s+${STATE} -> Record

@@ -1,0 +1,6 @@
+Value PROFILE_ID (\d+)
+Value TYPE_NAME (\S+)
+Value BINDING_TIMES (\d+)
+
+Start
+  ^\s+${PROFILE_ID}\s+${TYPE_NAME}\s+${BINDING_TIMES} -> Record
