@@ -37,6 +37,53 @@ class OltCreate(BaseModel):
 class Olt(OltResponse):
     pass
 
+################################
+# Esquemas de ONUTYPES
+###############################
+
+class OnuTypeCreate(BaseModel):
+    name: str
+    pon_type: str
+    capability: str
+    ethernet_ports: int
+    wifi_ports: int
+    voip_ports: int
+    catv: str
+    allow_custom_profiles: str
+
+    class Config:
+        orm_mode = True
+
+
+class OnuTypeResponse(OnuTypeCreate):
+    id: int
+
+
+class OnuTypeResponseList(BaseModel):
+    data: List[OnuTypeResponse]
+
+
+################################
+# Esquemas de SPEEDPROFILES
+###############################
+
+class SpeedProfileCreate(BaseModel):
+    name: str
+    speed: str
+    direction: str
+    type: str
+
+    class Config:
+        orm_mode = True
+
+
+class SpeedProfileResponse(SpeedProfileCreate):
+    id: int
+
+
+class SpeedProfileResponseList(BaseModel):
+    data: List[SpeedProfileResponse]
+
 
 ################################
 # Esquemas de ONU
@@ -104,6 +151,9 @@ class OnuCreate(BaseModel):
     class Config:
         orm_mode = True
 
+################################
+# Esquemas de PORT
+###############################
 
 class PortResponse(BaseModel):
     slot: int
@@ -121,6 +171,10 @@ class PortResponse(BaseModel):
     class Config:
         orm_mode = True
 
+
+################################
+# Esquemas de CARD
+###############################
 
 class CardResponse(BaseModel):
     slot: int

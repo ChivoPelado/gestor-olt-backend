@@ -1,0 +1,8 @@
+Value RACK (\d+)
+Value SHELF (\d+)
+Value SHELF_TYPE (\S+)
+Value CLEI_CODE (\S+)
+Value SERIAL_NO (\S+)
+
+Start
+  ^${RACK}\s+${SHELF}\s+${SHELF_TYPE}\s+${CLEI_CODE}\s+${SERIAL_NO} -> Record

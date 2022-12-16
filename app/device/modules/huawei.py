@@ -1,20 +1,36 @@
 """Agrega modulo para interactuar con olt Huawei."""
 
-from dataclasses import dataclass
 from typing import List
 from app.device.base import factory
 from app.device.base.device_base import OltDeviceBase
 
 
-@dataclass
+
 class Huawei(OltDeviceBase):
     """Modulo de gestión de comandos de equipo Huawei"""
 
-       
+    def __init__(self, hardware_ver: str, device_type: str, software_ver: List, pon_type: List[str], port_begin: int, cards: List[dict[str: any]], command: dict[str: any]) -> None:
+        super().__init__(hardware_ver, device_type, software_ver, pon_type, port_begin, cards, command)
+    
+
+    def get_shelf(self) -> dict[str: any]:
+        olt_shelf =  super().excecute_and_parse(self.command['get_olt_shelf'])
+
+        print(olt_shelf)
+
+        shelf = {}
+
+        shelf['shelf'] = olt_shelf[0]['frame_id']
+        shelf['type'] = olt_shelf[0]['frame_desc']
+        shelf['shelf_sn'] = olt_shelf[0]['frame_sn']
+
+        return shelf
+
+    
     def get_uncfg_onus(self) -> dict[str: any]:
         """ Ajusta la respuesta dando formato a el SN """
         response = []
-        parsed_response = OltDeviceBase.get_uncfg_onus(self)
+        parsed_response = super().excecute_and_parse(self.command['get_uncfg_onu'])
         
         for data in parsed_response:
             data['sn'] = data['sn'].replace("-", "")
@@ -28,7 +44,7 @@ class Huawei(OltDeviceBase):
 
         response = []
         card = {}
-        parsed_response = OltDeviceBase.get_cards(self)
+        parsed_response = super().excecute_and_parse(self.command['get_cards'])
 
         for data in parsed_response:
             ports = 0
@@ -49,7 +65,70 @@ class Huawei(OltDeviceBase):
             response.append(card.copy())
 
         return response
+
+
+    def get_vlans(self) -> List[dict[str: any]]:
+        """ Formatea la respuesta entregada desde la clase padre:
+        Formato original Ex.->
+        [
+             {
+                "vlan": "1",
+                "type": "smart",
+                "atribs": "common",
+                "stndprt": "8",
+                "srvprt": "0",
+                "vlancon": "-"
+            },
+            ...
+        ]
+        Formato requerido ->
+        [
+            {
+                "vlan": "100",
+                "description": null,
+                "scope": "Internet"
+            },
+            ...
+        ]
+        """
+        # Lista predefinida de VLANs reservadas en OLT Zte.
+        reserved_vlans = ["1"]
+
+        # Se obtiene el resultado original desde la clase Padre
+        parsed_response = super().excecute_and_parse(self.command['get_vlans'])
+        
+
+        response = []
+        vlan = {}
+        for response_vlans in parsed_response:
+            if response_vlans['vlan'] not in reserved_vlans:
+                vlan['vlan'] = response_vlans['vlan']
+                vlan['description'] = None            # Sin detalles
+                vlan['scope'] = "Internet"            # Todas las VLANs al servicio de Internet
+        
+                response.append(vlan.copy())
+        
+        return response
     
+
+    def get_ports(self) -> List[dict[str: any]]:
+        ports = []
+        port = {}
+        parsed_response = self.get_cards()
+
+        for card in parsed_response:
+            if card['role'] == "GPON":
+                for port_number in (port + self.port_begin for port in range(card['port'])): 
+                    # port['card_id'] = card.id,
+                    port['slot'] = card['slot']
+                    port['port'] = port_number
+                    port['pon_type'] = card['role']
+
+                    ports.append(port.copy())
+
+        return ports
+
+
     def __repr__(self) -> str:
         return self.hardware_ver
    

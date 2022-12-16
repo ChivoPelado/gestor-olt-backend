@@ -1,31 +1,60 @@
 """
 APIs para la gestión de ONUs
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Form, Depends
+from typing import List
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.apis.v1.system import onu_crud
 from app.core.schemas.system import OnuResponse, OnuCreate
-from app.core.models.system import Onu, Olt, Port, Card
+from app.core.models.system import Onu, Olt, Port, Card, OnuType
 from app.celery_task.tasks import get_onu_signal_level
 from app.core.schemas.generic import IResponseBase
-from app.interface.utils import Payload
+
 
 
 router = APIRouter()
 
-@router.post("/onu/authorize",  response_model=IResponseBase[OnuResponse])
+@router.post("/authorize") #,  response_model=IResponseBase[OnuResponse])
+async def authorize_onu(
+    olt_id: int = Form(),
+    slot: int = Form(),
+    port: int = Form(),
+    onu_sn: str = Form(), 
+    onu_type: str = Form(),
+    onu_mode: str = Form(),
+    vlan: int = Form(),
+    down_speed: str = Form(),
+    up_speed: str = Form(),
+    name: str = Form(),
+    comment: str = Form(),
+    onu_ext_id: int = Form(),
+    
+    db: Session = Depends(get_db)): 
+    authorized_onu = onu_crud.authorize_onu( 
+        olt_id,
+        slot,
+        port,
+        onu_sn, 
+        onu_type,
+        onu_mode,
+        vlan,
+        down_speed,
+        up_speed,
+        name,
+        comment,
+        onu_ext_id,
+        db=db)
+    return authorized_onu #IResponseBase[OnuResponse](response=authorized_onu)
+
+@router.get("/",  response_model=IResponseBase[OnuResponse])
 async def authorize_onu(onu: OnuCreate, db: Session = Depends(get_db)): 
     authorized_onu = onu_crud.authorize_onu(db, onu=onu)
     return IResponseBase[OnuResponse](response=authorized_onu)
 
-@router.get("/onu",  response_model=IResponseBase[OnuResponse])
-async def authorize_onu(onu: OnuCreate, db: Session = Depends(get_db)): 
-    authorized_onu = onu_crud.authorize_onu(db, onu=onu)
-    return IResponseBase[OnuResponse](response=authorized_onu)
 
 
-@router.get("/sys/onu/get_onu_signal/{ext_id}")
+@router.get("/get_onu_signal/{ext_id}")
 def get_onu_signal(ext_id: int,  db: Session = Depends(get_db)) -> dict:
     """
     Retorna la potencia óptica de la ONU

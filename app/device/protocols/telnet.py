@@ -16,7 +16,7 @@ SESSION_LOG_FILE = "logging.txt"
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5},
              name='olt:send_command')
-def send_command(self, device: dict, commands = []):
+def send_command(self, device: dict, commands = [], expect_string = None):
     result = {}
     device_handler = {
         **device,
@@ -28,7 +28,7 @@ def send_command(self, device: dict, commands = []):
         with ConnectHandler(**device_handler) as connection:
             connection.enable()
             for command in commands:
-                output = connection.send_command(command)
+                output = connection.send_command(command, expect_string=expect_string)
                 result[command] = output
         return result
     except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:

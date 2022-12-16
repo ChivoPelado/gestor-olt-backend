@@ -1,0 +1,6 @@
+Value VLANS (\S+)
+
+
+Start
+  ^Details are following:
+  ^\s+${VLANS} -> Record

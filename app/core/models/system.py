@@ -26,6 +26,7 @@ class Olt(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
+    shelf = relationship("Shelf", backref="olt")
     cards = relationship("Card", backref="olt")
     onus = relationship("Onu", backref="olt")
 
@@ -38,6 +39,20 @@ class Olt(Base):
             "username": self.telnet_user,
             "password": self.telnet_password
         }
+
+class Shelf(Base):
+    """
+    Modelo Shelf, representa una "Ranura de Rack (Shelf o Frame)" de una OLT
+    """
+
+    __tablename__ = "shelf"
+
+    id = Column(Integer, primary_key=True, index=True)
+    olt_id = Column(Integer, ForeignKey("olt.id"))
+    shelf = Column(Integer, nullable=False)
+    type = Column(String)
+    shelf_sn = Column(String)
+
 
 class Card(Base):
     """
@@ -106,6 +121,52 @@ class Port(Base):
             where(Onu.port_id == cls.id). \
             label('online_onu_count')
 
+class Vlan(Base):
+    """
+    Modelo representa VLANs implementadas en olt
+    """
+    __tablename__ = "vlan"
+
+    id = Column(Integer, primary_key=True, index=True)
+    olt_id = Column(Integer, ForeignKey("olt.id"))
+    vlan = Column(Integer, nullable=False)
+    description = Column(String)
+    scope = Column(String, nullable=False, default="Internet")
+
+
+
+class OnuType(Base):
+    """
+    Modelo representa una Tipos de ONUS disponibles en las OLT
+    """
+    __tablename__ = "onu_type"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    pon_type = Column(String, nullable=False, default="GPON")
+    capability = Column(String, nullable=False)
+    ethernet_ports = Column(Integer, nullable=False)
+    wifi_ports = Column(Integer, nullable=False)
+    voip_ports = Column(Integer, nullable=False)
+    catv = Column(String, nullable=False) 
+    allow_custom_profiles = Column(String, nullable=False)      
+
+    onus = relationship("Onu", backref="onu_type")
+
+class SpeedProfile(Base):
+    """
+    Modelo representa perfiles de velocidad disponibles en las OLT
+    """
+    __tablename__ = "speed_profile"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    speed = Column(String, nullable=False)
+    direction = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+  
+    onus = relationship("Onu", backref="speed_profile")
+
 class Onu(Base):
     """
     Modelo Onu, representa una ONU autorizada en la OLT
@@ -115,21 +176,29 @@ class Onu(Base):
     id = Column(Integer, primary_key=True, index=True)
     olt_id = Column(Integer, ForeignKey("olt.id"))
     port_id = Column(Integer, ForeignKey("port.id"))
+    onu_type_id = Column(Integer, ForeignKey("onu_type.id"))
+    speed_profile_id = Column(Integer, ForeignKey("speed_profile.id"))
     ext_id = Column(Integer, index=True)
     pon_type = Column(String, nullable=False, default="GPON")
     shelf = Column(Integer, nullable=False)
     slot = Column(Integer, nullable=False)
     port_no = Column(Integer, nullable=False)
-    index = Column(Integer, nullable=False)
+    index = Column(Integer)
     serial_no = Column(String, unique=True, index=True, nullable=False)
     vlan = Column(Integer, nullable=False)
-    name = Column(String, nullable=False)
-    status = Column(String, nullable=False)
-    signal = Column(String, nullable=False)
-    comment = Column(String, nullable=False)
+    name = Column(String, default="n/a")
+    comment = Column(String, default="n/a")
+    status = Column(String, nullable=False, default="n/a")
+    signal = Column(String, nullable=False, default="n/a")
     onu_mode = Column(String, nullable=False, default="Routing")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
     def __str__(self):
         return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"
+
+    
+
+
+
+

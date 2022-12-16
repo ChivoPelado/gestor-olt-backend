@@ -22,9 +22,11 @@
         {"name": "H902PILA", "ports": 0, "role": "POWER"}
       ],
       "command": {
+        "get_olt_shelf": "display frame desc",
         "get_uncfg_onu": "display ont autofind all",
         "get_cards": "display board 0",
-        "get_onu_types": "display ont-srvprofile gpon all"
+        "get_onu_types": "display ont-srvprofile gpon all",
+        "get_vlans": "display vlan all"
       }
     },
     {
@@ -41,9 +43,35 @@
         {"name": "HUVQ", "ports": 4, "role": "UPLINK"}
       ],
       "command": {
+        "get_olt_shelf": "show shelf",
         "get_uncfg_onu": "show pon onu uncfg",
+        "show_onus_by_if": "show gpon onu state %s",
         "get_cards": "show card",
-        "get_onu_types": "show onu-type gpon"
+        "get_onu_types": "show onu-type gpon",
+        "get_vlans": "show vlan summary",
+        "enter_configutation_mode": "configure terminal",
+        "select_interface": "interface %s",
+        "bind_onu_type_sn": "onu %s type %s sn %s",
+        "set_onu_name": "name %s",
+        "set_onu_description": "description %s",
+        "sn_bind_enable": "sn-bind enable sn",
+        "set_tcont_profile": "tcont %s profile %s",
+        "set_gemport": "gemport %s tcont %s",
+        "set_downstream_limit": "gemport %s traffic-limit downstream %s",
+        "set_switchport_mode_hybrid": "switchport mode hybrid vport %s",
+        "set_service_port": "service-port %s vport %s user-vlan %s vlan %s",
+        "manage_pon_onu": "pon-onu-mng %s",
+        "set_flow_mode_filter_discard": "flow mode %s tag-filter vlan-filter untag-filter discard",
+        "set_flow_prority": "flow %s pri %s vlan %s",
+        "set_gemport_flow": "gemport %s flow %s",
+        "bind_switch_port_ip_host": "switchport-bind switch_0/1 iphost %s",
+        "bind_switch_port_veip": "switchport-bind switch_0/1 veip %s",
+        "set_vlan_filter_mode": "vlan-filter-mode iphost %s tag-filter vlan-filter untag-filter discard",
+        "set_vlan_filter_priority": "vlan-filter iphost %s pri %s vlan %s",
+        "set_dhcp_on_ports": "dhcp-ip ethuni %s from-onu",
+        "enable_mode_forward": "security-mgmt 998 state enable mode forward ingress-type lan protocol web https",
+        "enable_ingress_type": "security-mgmt 999 state enable ingress-type lan protocol ftp telnet ssh snmp tr069",
+        "exit_mode": "exit"
       }
     }
   ]

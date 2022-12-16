@@ -1,141 +1,46 @@
+************************************************
+Welcome to ZXAN product C300 of ZTE Corporation
+************************************************
 
-Warning: Telnet is not a secure protocol, and it is recommended to use Stelnet.
-
->>User name:aherrera
->>User password:
-
-
-  Huawei Integrated Access Software (MA5800).
-  Copyright(C) Huawei Technologies Co., Ltd. 2002-2018. All rights reserved.
-
-  -----------------------------------------------------------------------------
-  User last login information:
-  -----------------------------------------------------------------------------
-  Access Type : Telnet
-  IP-Address  : 177.234.224.136
-  Login  Time : 2022-12-09 16:55:02-06:00
-  Logout Time : 2022-12-09 16:55:17-06:00
-  -----------------------------------------------------------------------------
-
-MA5800-X15>
-
-MA5800-X15>
-
-MA5800-X15>undo smart 
-  Interactive function is disabled
-
-MA5800-X15>scroll 
-
-MA5800-X15>
-
-MA5800-X15>enable 
-
-MA5800-X15#
-
-MA5800-X15#
-
-MA5800-X15#
-
-MA5800-X15#display ont-srvprofile gpon all 
-  -----------------------------------------------------------------------------
-  Profile-ID  Profile-name                                Binding times
-  -----------------------------------------------------------------------------
-  0           srv-profile_default_0                       0            
-  1           CF_ETH_CATV                                 0            
-  2           srv-profile_2                               0            
-  3           HG865                                       0            
-  4           ONU-type-eth-4-pots-2-catv-0                2            
-  5           ONU-type-eth-1-wifi-1-catv-1                0            
-  6           HS8145V                                     1            
-  7           CDATA-FD600-704                             93           
-  8           HUAWEI-ECHOLIFE-HS8545M                     9            
-  9           HUAWEI-ECHOLIFE-EG8141A5                    343          
-  10          HS8546V                                     3            
-  11          HUAWEI-ECHOLIFE-HG8546M                     315          
-  12          HG8546M                                     0            
-  13          Generic_1_V100                              916          
-  14          Generic_2_V100                              549          
-  15          Generic_3_V100                              3            
-  16          Generic_4_V100                              2            
-  17          FT504XW                                     4            
-  18          CATV_ADM                                    4            
-  19          CDATA-FD600-701                             67           
-  20          ZTE-Manta                                   2            
-  21          ZTE-F601                                    1            
-  22          Generic_2_V300                              0            
-  23          FYS-002                                     0            
-  24          ZTE-MantaCATV                               0            
-  25          XN020-G3v                                   15           
-  26          HG8010H                                     1            
-  27          TX-6610                                     0            
-  28          FYS-001                                     8            
-  29          HG8545M                                     0            
-  30          ZTE-F660V6.0                                0            
-  31          ZTE-F660                                    22           
-  32          CSP-4213XW                                  9            
-  33          ZTE-F600                                    0            
-  34          Generic_1_V300                              0            
-  35          HG8310M                                     3            
-  36          Generic_1_V500                              16           
-  37          HG8240H                                     0            
-  38          Generic_2_V500                              1            
-  39          CSP-4413XW                                  139          
-  40          CSP-4111G                                   161          
-  41          HUAWEI-ECHOLIFE-HG8310M                     383          
-  42          HUAWEI-ECHOLIFE-EG8143A5                    2            
-  43          Generic_1_V400                              0            
-  44          CX0101R001                                  28           
-  45          HGW-D54BB8                                  35           
-  46          CSP-4213XW-                                 99           
-  47          HGW-CDBBF8                                  2            
-  48          FHR2404KB                                   0            
-  49          HGW-5E8F2D                                  2            
-  50          WIFI-SSID-FTTH                              7            
-  51          FHR2201K                                    0            
-  52          1GE-S                                       0            
-  53          HGW-5DD6EB                                  0            
-  54          HGW-5EA2DD                                  1            
-  55          HG8346M                                     0            
-  56          ZXHNF660                                    32           
-  57          FD600-511G-HZ630                            0            
-  58          FD600-704GAW-HR500                          2            
-  59          FG801-W                                     10           
-  60          FHR2100GKB                                  0            
-  61          HGW-6DFF57                                  0            
-  62          HGW-CCA6DB                                  1            
-  63          FD600-701GA-HZ220                           1            
-  64          Generic_1_V200                              0            
-  65          HUAWEI-ECHOLIFE-EG8141A5-                   233          
-  66          HGW-CFC82D                                  0            
-  67          HGW-D03911                                  0            
-  68          CDATA-FD704GW-DAX-R710                      40           
-  69          Generic_2_V400                              0            
-  70          3212GDER                                    0            
-  71          HUAWEI-ECHOLIFE-EG8141A5.                   0            
-  72          CDATA-FD502GW-DX-R410                       12           
-  73          KT-WIFI-GPON-ONU-HGW                        11           
-  74          FD600-701GA-HZ220-                          31           
-  75          ALT-FD600-511GW                             0            
-  76          HGW-CDBBF8-                                 10           
-  77          ONT-2GF-RFW                                 0            
-  78          HUAWEI-ECHOLIFE-EG8145V5                    6            
-  79          CDATA-XPON-FD701G-AX-F310                   5            
-  80          Generic_5_V100                              0            
-  81          Generic_6_V100                              0            
-  82          FTTH-ONU-MODEL-HS8545V6                     39           
-  83          Generic_1_V600                              1            
-  84          CDATA-XPON-FD701G-AX-F320                   42           
-  85          Generic_2_V200                              0            
-  86          HUAWEI-ECHOLIFE-HG8245Q2                    0            
-  87          1GE1FEWIFICATV                              0            
-  88          TENDA-HG9                                   28           
-  89          HUAWEI-CTV-ECHOLIFE-HG8321V                 30           
-  90          HUAWEI-CTV-ECHOLIFE-HG8321V-                9            
-  91          ZTE-F601V6.0                                0            
-  92          ZTE-F660V5.0                                0            
-  -----------------------------------------------------------------------------
-  Total: 93
-
-MA5800-X15#
-
-MA5800-X15#exit
+Last login time is 12.15.2022-22:32:57-utc, 0 authentication failures happened s
+ince that time.
+Username:aherrera
+Password:
+ZXAN#
+ZXAN#
+ZXAN#terminal length 0
+ZXAN#
+ZXAN#configure terminal
+%Info 20272: Enter configuration commands, one per line. End with CTRL/Z.
+ZXAN(config)#interface gpon-olt_1/6/16
+ZXAN(config-if)#onu 2 type ZXHNF660 sn BTPTDD2067B7
+.[Successful]
+ZXAN(config-if)#exit
+ZXAN(config)#interface gpon-onu_1/6/16:2
+ZXAN(config-if)#name Prueba
+ZXAN(config-if)#description Prueba
+ZXAN(config-if)#sn-bind enable sn
+ZXAN(config-if)#tcont 1 profile SMARTOLT-50M-UP
+ZXAN(config-if)#gemport 1 tcont 1
+ZXAN(config-if)#gemport 1 traffic-limit downstream SMARTOLT-50M-DOWN
+ZXAN(config-if)#switchport mode hybrid vport 1
+ZXAN(config-if)#service-port 1 vport 1 user-vlan 500 vlan 500
+ZXAN(config-if)#exit
+ZXAN(config)#pon-onu-mng gpon-onu_1/6/16:2
+ZXAN(gpon-onu-mng 1/6/16:2)#flow mode 1 tag-filter vlan-filter untag-filter discard
+ZXAN(gpon-onu-mng 1/6/16:2)#flow 1 pri 0 vlan 500
+ZXAN(gpon-onu-mng 1/6/16:2)#gemport 1 flow 1
+ZXAN(gpon-onu-mng 1/6/16:2)#switchport-bind switch_0/1 iphost 1
+ZXAN(gpon-onu-mng 1/6/16:2)#switchport-bind switch_0/1 veip 1
+ZXAN(gpon-onu-mng 1/6/16:2)#vlan-filter-mode iphost 1 tag-filter vlan-filter untag-filter discard
+ZXAN(gpon-onu-mng 1/6/16:2)#vlan-filter iphost 1 pri 0 vlan 500
+ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/1 from-onu
+ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/2 from-onu
+ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/3 from-onu
+ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/4 from-onu
+ZXAN(gpon-onu-mng 1/6/16:2)#security-mgmt 998 state enable mode forward ingress-type lan protocol web https
+ZXAN(gpon-onu-mng 1/6/16:2)#security-mgmt 999 state enable ingress-type lan protocol ftp telnet ssh snmp tr069
+ZXAN(gpon-onu-mng 1/6/16:2)#exit
+ZXAN(config)#exit
+ZXAN#
+ZXAN#exit

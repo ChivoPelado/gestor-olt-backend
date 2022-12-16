@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     SECRET: str
     TOKEN_URL: str
 
-    # NTC_TEMPLATES_DIR = os.environ.get("NTC_TEMPLATES_DIR", "app/ntc-templates")
+    
 
     @validator("DATABASE_URI", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:

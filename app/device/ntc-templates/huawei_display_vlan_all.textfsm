@@ -1,0 +1,9 @@
+Value VLAN (\d+)
+Value TYPE (\S+)
+Value ATRIBS (\S+)
+Value STNDPRT (\d+)
+Value SRVPRT (\d+)
+Value VLANCON (\S+)
+
+Start
+  ^\s+${VLAN}\s+${TYPE}\s+${ATRIBS}\s+${STNDPRT}\s+${SRVPRT}\s+${VLANCON} -> Record

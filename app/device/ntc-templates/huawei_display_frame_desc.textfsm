@@ -1,0 +1,7 @@
+Value FRAME_ID (\d+)
+Value FRAME_SN (\S+)
+Value FRAME_DESC (\S+)
+
+Start
+  ^\s+${FRAME_ID}\s+${FRAME_SN}\s+${FRAME_DESC} -> Record
+

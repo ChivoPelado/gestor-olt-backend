@@ -3,16 +3,21 @@ Template, Hostname, Platform, Command
 
 # same os, same length, used alphabetical order of command name
 zte_zxros_show_card.textfsm, .*, zte_zxros, sh[[ow]] card
+zte_zxros_show_gpon_onu_state.textfsm, .*, zte_zxros, sh[[ow]] gpon onu state
 zte_zxros_show_gpon_onu_uncfg.textfsm, .*, zte_zxros, sh[[ow]] gpon onu uncfg
 zte_zxros_show_onu-type_gpon.textfsm, .*, zte_zxros, sh[[ow]] onu-type gpon
 zte_zxros_show_pon_onu_uncfg.textfsm, .*, zte_zxros, sh[[ow]] pon onu uncfg
+zte_zxros_show_shelf.textfsm, .*, zte_zxros, sh[[ow]] shelf
+zte_zxros_show_vlan_summary.textfsm, .*, zte_zxros, sh[[ow]] vlan summary
 
 huawei_display_ont-srvprofile_gpon_all.textfsm
 # Huawei
 huawei_display_board_0.textfsm, .*, huawei, display board 0
 huawei_display_board_(if).textfsm, .*, huawei, display board 
+huawei_display_frame_desc.textfsm, .*, huawei, display frame desc
 huawei_display_ont_autofind_all.textfsm, .*, huawei, display ont autofind all
 huawei_display_ont-srvprofile_gpon_all.textfsm, .*, huawei, display ont-srvprofile gpon all
+huawei_display_vlan_all.textfsm, .*, huawei, display vlan all
 #arista_eos_show_vlan.textfsm, .*, arista_eos, sh[[ow]] vl[[an]]
 
 # os in alphabetical order and space between cisco_asa and arista_eos
