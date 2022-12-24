@@ -1,7 +1,11 @@
 from app.core.config import settings
 from fastapi_login import LoginManager
 
-login_manager = LoginManager(settings.SECRET, settings.TOKEN_URL)
+login_manager = LoginManager(
+    settings.SECRET, 
+    settings.TOKEN_URL,
+    default_expiry = settings.DEFAULT_EXPIRY
+    )
 
 class Hasher:
     @staticmethod

@@ -22,7 +22,7 @@ class OltResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class OltCreate(BaseModel):
+""" class OltCreate(BaseModel):
     name: str
     host: str
     telnet_port: int
@@ -32,10 +32,12 @@ class OltCreate(BaseModel):
     hardware_ver: str 
     software_ver: str
     snmp_read_com: str
-    snmp_write_com: str
+    snmp_write_com: str """
 
 class Olt(OltResponse):
     pass
+
+
 
 ################################
 # Esquemas de ONUTYPES
@@ -58,9 +60,6 @@ class OnuTypeCreate(BaseModel):
 class OnuTypeResponse(OnuTypeCreate):
     id: int
 
-
-class OnuTypeResponseList(BaseModel):
-    data: List[OnuTypeResponse]
 
 
 ################################
@@ -109,6 +108,7 @@ class Onu(BaseModel):
 class OnuResponse(BaseModel):
     id: int
     olt_id: int
+    olt_name: str
     port_id: int
     ext_id: int
     pon_type: str
@@ -116,8 +116,12 @@ class OnuResponse(BaseModel):
     slot: int
     port_no: int
     index: int
+    onu_type_name: str
     serial_no: str
     vlan: int
+    onu_mode: str
+    speed_profile_up_name: str
+    speed_profile_down_name: str
     name: str
     status: str
     signal: str
@@ -151,6 +155,38 @@ class OnuCreate(BaseModel):
     class Config:
         orm_mode = True
 
+
+class OnuSignals(BaseModel):
+    id: int
+    ext_id: int
+    olt_id: int
+    shelf: int
+    slot: int
+    port_no: int
+    serial_no: str    
+    status: str
+    signal: str
+    signal_1310: str
+
+    class Config:
+        orm_mode = True
+
+################################
+# Esquemas de ONUUNCFG
+###############################
+class UncfgOnu(BaseModel):
+    shelf: int
+    slot: int
+    port: int
+    type: str
+    sn: str
+
+class UncfgOnuResponse(BaseModel):
+    olt_id: int
+    olt_name: str
+    uncfg_onus: List[UncfgOnu]
+
+
 ################################
 # Esquemas de PORT
 ###############################
@@ -161,7 +197,7 @@ class PortResponse(BaseModel):
     pon_type: str
     admin_status: str 
     operation_status: str 
-    description: str 
+    description: Optional[str] 
     tx_power: str 
     onu_count: int
     online_onu_count: int
@@ -172,11 +208,13 @@ class PortResponse(BaseModel):
         orm_mode = True
 
 
+
 ################################
 # Esquemas de CARD
 ###############################
 
 class CardResponse(BaseModel):
+    id: int
     slot: int
     type: str
     real_type: str
@@ -186,3 +224,28 @@ class CardResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+class CardPortResponse(BaseModel):
+    id: int
+    slot: int
+    type: str
+    ports: List[PortResponse]
+
+    class Config:
+        orm_mode = True
+
+
+################################
+# Esquemas de CARD
+###############################
+
+class VlanResponse(BaseModel):
+    id: int
+    olt_id: int
+    vlan: str
+    description: Optional[str]
+    scope: str
+
+    class Config:
+        orm_mode = True
+

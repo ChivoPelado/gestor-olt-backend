@@ -42,6 +42,21 @@ class IOlt(ABC):
 
     @property
     @abstractmethod   
+    def snmp_port(self) -> str:
+        ...
+
+    @property
+    @abstractmethod   
+    def snmp_read_com(self) -> str:
+        ...
+
+    @property
+    @abstractmethod   
+    def snmp_write_com(self) -> str:
+        ...
+
+    @property
+    @abstractmethod   
     def hardware_ver(self) -> str:
         ...
 

@@ -23,6 +23,14 @@ class BaseConfig(BaseSettings):
 
     CELERY_TASK_ROUTES = (route_task,)
 
+    """ CELERY_BEAT_SCHEDULE = {
+        'update-port-tx-power': {
+            'task': 'task.add',
+            'schedule': 30.0,
+            'args': (16, 16)
+        }
+    } """
+
 class DevelopmentConfig(BaseConfig):
     pass
 

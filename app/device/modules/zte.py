@@ -19,8 +19,12 @@ VEIP = 1
 class Zte(OltDeviceBase):
     """Modulo de gestión de comandos de equipo ZTE"""
 
-    def __init__(self, hardware_ver: str, device_type: str, software_ver: List, pon_type: List[str], port_begin: int, cards: List[dict[str: str]], command: dict[str: str]) -> None:
-        super().__init__(hardware_ver, device_type, software_ver, pon_type, port_begin, cards, command)
+    def __init__(self, hardware_ver: str, device_type: str, software_ver: List, 
+        pon_type: List[str], port_begin: int, cards: List[dict[str: str]], 
+        command: dict[str: str], MIB: dict[str: str]) -> None:
+
+        super().__init__(hardware_ver, device_type, software_ver, pon_type, port_begin, cards, command, MIB)
+
 
     def get_shelf(self) -> dict[str: any]:
         olt_shelf =  super().excecute_and_parse(self.command['get_olt_shelf'])
@@ -34,7 +38,7 @@ class Zte(OltDeviceBase):
         return shelf
     
     def get_uncfg_onus(self) -> List[dict[str: any]]:
-        return super().excecute_and_parse(self.command['get_uncfg_onu'])
+        return super().excecute_and_parse(self.command['get_uncfg_onu_pon'])
 
 
     def get_cards(self) -> List[dict[str: any]]:
@@ -124,10 +128,9 @@ class Zte(OltDeviceBase):
         
     def authorize_onu(self, onu: IOnu,  onu_type: IOnuType,  profile_up: str, profile_down: str) -> None:
        
+
         olt_interface = f"gpon-olt_{onu.shelf}/{onu.slot}/{onu.port_no}"
-
         onu_index =self._get_next_avail_index(olt_interface)
-
         onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu_index}"
 
 
@@ -187,6 +190,82 @@ class Zte(OltDeviceBase):
     def set_onu_mode_bridge():
         pass
 
+    def get_port_tx(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['zxAnOpticalPowerTxCurrValue'] + self.encode_gpon_onu_index_type_one(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        level = round((int(result[oid]) / 1000), 4)
+
+        return 0 if level == 2147483.647 else level
+
+
+    def get_port_status(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['ifOperStatus'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        status = int(result[oid])
+
+        return "Arriba" if status == 1 else "Abajo"
+
+
+    def get_port_admin_state(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['ifAdminStatus'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        status = int(result[oid])
+
+        return "Habilitado" if status == 1 else "Deshabilitado"
+
+    
+    def get_port_description(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['ifDescr'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+
+        return result[oid]
+
+    def get_onu_rx(self, shelf: int, slot: int, port: int, index: int):
+
+        oid = self.MIB['zxGponPonRxOpticalLevel'] + self.encode_gpon_onu_index(shelf, slot, port, index) + '.1'
+
+        result = super()._snmp_query(oid)
+
+        return self._onu_rx_convert(int(result[oid]))
+
+
+    def get_olt_rx(self, shelf: int, slot: int, port: int, index: int):
+
+        oid = self.MIB['txPower'] + self.encode_gpon_onu_index(shelf, slot, port, index)
+
+        result = super()._snmp_query(oid)
+
+        return round((int(result[oid]) / 1000), 2)
+
+
+    def get_onu_state(self, shelf: int, slot: int, port: int, index: int):
+        
+        oid = self.MIB['zxGponOntPhaseState'] + self.encode_gpon_onu_index(shelf, slot, port, index)
+
+        result = super()._snmp_query(oid)
+
+        result = int(result[oid])
+
+        state = "En línea" if result == 3 else "LOS" if result == 1 else "Fuera de Línea" if result == 6 else "Falla Eléctrica" if result == 4 else "Otro\Desconocido" 
+        return state
+
+        
+    def _onu_rx_convert(self, snmp_value):
+        if snmp_value == 65535:
+            return 0
+        elif snmp_value > 30000:
+            return (snmp_value - 65536) * 0.002 - 30
+        return round((snmp_value * 0.002 - 30), 2)
+        # return result[oid]
+
 
     def _get_next_avail_index(self, olt_interface: str) -> int:
         """ Metodo interno para determinar el indice ONU disponible desde una secuencia"""
@@ -213,9 +292,56 @@ class Zte(OltDeviceBase):
         # Retorna el indice
         return available_index
 
+    def encode_gpon_onu_index(self, shelf: int, slot: int, port: int, index: int):
+        index_type = self._dec_to_bin(1, 4)  # '0001'
+        shelf = self._dec_to_bin(shelf - 1, 4)  # '0000'
+        slot = self._dec_to_bin(slot, 8)
+        port = self._dec_to_bin(port, 8)
+        srv_prt_id = self._dec_to_bin(0, 8)
 
+        print(str(hex(int((index_type + shelf + slot + port + srv_prt_id), 2))))
+        return str(int((index_type + shelf + slot + port + srv_prt_id), 2)) + "." + str(index)
+
+
+    def encode_gpon_onu_index_type_one(self, shelf: int, slot: int, port: int):
+        # Slot conversion for ZTE C300 Shelf
+        in_slot = slot
+        composite_index_slot = 0
+        if 2 <= in_slot < 9:
+            composite_index_slot = in_slot - 2
+        elif 12 <= slot <= 22:
+            composite_index_slot = in_slot - 4
+
+        index_type = self._dec_to_bin(1, 4)  # '0001'
+        shelf = self._dec_to_bin(shelf - 1, 4)  # '0000'
+        slot = self._dec_to_bin(composite_index_slot, 8)
+        port = self._dec_to_bin(port - 1, 8)  # (Port No. or (OLT No. - 1)
+        srv_prt_id = self._dec_to_bin(0, 8)
+
+        return str(int((index_type + shelf + slot + port + srv_prt_id), 2))
+    
+
+    def encode_gpon_olt_ifindex_type_one(self, shelf: int, slot: int, port: int):
+
+        index_type = self._dec_to_bin(1, 4)  # '0001'
+        rack = self._dec_to_bin(1, 4)  # 'RACK -> 1'
+        shelf = self._dec_to_bin(shelf, 8)
+        slot = self._dec_to_bin(slot, 8)
+        port = self._dec_to_bin(port, 8)  # (Port No. or (OLT No. - 1)
+
+        return str(int((index_type + rack + shelf + slot + port), 2))
+
+    def _dec_to_bin(self, decimal, bits):
+        bnr = bin(decimal).replace('0b', '')
+        x = bnr[::-1]
+
+        while len(x) < bits:
+            x += '0'
+        bnr = x[::-1]
+        return bnr
+    
     def __repr__(self) -> str:
-        return self.hardware_ver
+            return self.hardware_ver
 
 def register() -> None:
     """Registro de módulo"""

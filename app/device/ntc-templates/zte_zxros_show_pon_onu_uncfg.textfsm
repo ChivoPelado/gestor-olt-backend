@@ -1,10 +1,10 @@
 Value SHELF (\d+)
 Value SLOT (\d+)
 Value PORT (\d+)
-Value MODEL (\S+)
+Value TYPE (\S+)
 Value SN (\S+)
 Value TIME (\S+)
 Value DATE (\S+)
 
 Start
-  ^gpon-olt_${SHELF}/${SLOT}/${PORT}\s+${MODEL}\s+${SN}\s+${TIME} ${DATE} -> Record
+  ^gpon-olt_${SHELF}/${SLOT}/${PORT}\s+${TYPE}\s+${SN}\s+${TIME} ${DATE} -> Record

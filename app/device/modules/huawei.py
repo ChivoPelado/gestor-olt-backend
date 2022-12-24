@@ -9,8 +9,9 @@ from app.device.base.device_base import OltDeviceBase
 class Huawei(OltDeviceBase):
     """Modulo de gestión de comandos de equipo Huawei"""
 
-    def __init__(self, hardware_ver: str, device_type: str, software_ver: List, pon_type: List[str], port_begin: int, cards: List[dict[str: any]], command: dict[str: any]) -> None:
-        super().__init__(hardware_ver, device_type, software_ver, pon_type, port_begin, cards, command)
+    def __init__(self, hardware_ver: str, device_type: str, software_ver: List, pon_type: List[str], 
+        port_begin: int, cards: List[dict[str: any]], command: dict[str: any], MIB: dict[str: str]) -> None:
+        super().__init__(hardware_ver, device_type, software_ver, pon_type, port_begin, cards, command, MIB)
     
 
     def get_shelf(self) -> dict[str: any]:
@@ -128,9 +129,52 @@ class Huawei(OltDeviceBase):
 
         return ports
 
+    def get_port_tx(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['HUAWEI-XPON-MIB::hwGponOltOpticsDdmInfoTxPower'] + self._encode_ifindex(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        level = round((int(result[oid]) / 100), 4)
+
+        return 0 if level == 21474836.47 else level
+    
+
+    def get_port_status(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['HUAWEI-XPON-MIB::hwGponDeviceOltControlStatus'] + self._encode_ifindex(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        status = int(result[oid])
+
+        return "Arriba" if status == 1 else "Abajo  "
+
+
+    def get_port_admin_state(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['HUAWEI-XPON-MIB::hwGponDeviceOltControlOpticModuleStatus'] + self._encode_ifindex(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+        status = int(result[oid])
+
+        return "Habilitado" if status == 1 else "Deshabilitado"
+
+    def get_port_description(self, shelf: int, slot: int, port: int):
+
+        oid = self.MIB['HUAWEI-XPON-MIB::hwGponDeviceOltControlDespt'] + self._encode_ifindex(shelf, slot, port)
+
+        result = super()._snmp_query(oid)
+
+        return result[oid]
+
+
+    def _encode_ifindex(self, shelf: int, slot: int, port: int):
+        """Determina el indice codificado de la interface"""
+
+        return str((4194304000 + (slot * (256 * 32)) + port * 256))
 
     def __repr__(self) -> str:
         return self.hardware_ver
    
+    
 def register() -> None:
     factory.register("huawei", Huawei)

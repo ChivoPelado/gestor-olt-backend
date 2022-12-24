@@ -6,14 +6,21 @@ from typing import List
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.apis.v1.system import onu_crud
-from app.core.schemas.system import OnuResponse, OnuCreate
-from app.core.models.system import Onu, Olt, Port, Card, OnuType
-from app.celery_task.tasks import get_onu_signal_level
+from app.core.schemas.system import OnuResponse, OnuCreate, UncfgOnuResponse, OnuSignals
+from app.core.models.system import Onu, Olt, Port, Card, OnuType, OnuType, SpeedProfileDown, SpeedProfileUp
+from app.core.utils.security import login_manager
 from app.core.schemas.generic import IResponseBase
-
+import time
 
 
 router = APIRouter()
+
+@router.get("/unconfigured", response_model=IResponseBase[List[UncfgOnuResponse]])
+async def get_uncfg_onus(db: Session = Depends(get_db), user = Depends(login_manager)):
+    uncfg_onus = onu_crud.get_uncfg_onus(db)
+    return IResponseBase[List[UncfgOnuResponse]](response=list(uncfg_onus))
+
+
 
 @router.post("/authorize") #,  response_model=IResponseBase[OnuResponse])
 async def authorize_onu(
@@ -31,6 +38,7 @@ async def authorize_onu(
     onu_ext_id: int = Form(),
     
     db: Session = Depends(get_db)): 
+    
     authorized_onu = onu_crud.authorize_onu( 
         olt_id,
         slot,
@@ -45,7 +53,9 @@ async def authorize_onu(
         comment,
         onu_ext_id,
         db=db)
+
     return authorized_onu #IResponseBase[OnuResponse](response=authorized_onu)
+
 
 @router.get("/",  response_model=IResponseBase[OnuResponse])
 async def authorize_onu(onu: OnuCreate, db: Session = Depends(get_db)): 
@@ -53,36 +63,41 @@ async def authorize_onu(onu: OnuCreate, db: Session = Depends(get_db)):
     return IResponseBase[OnuResponse](response=authorized_onu)
 
 
+@router.get("/get_onu_by_ext_id/{external_id}",  response_model=IResponseBase[OnuResponse])
+async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)): 
+   
+    response = {}
+    db_onu, olt_name, onu_type_name, speed_up_name, speed_down_name = db.query(
+        Onu, Olt.name, OnuType.name, SpeedProfileUp.name, SpeedProfileDown.name) \
+        .join(Olt) \
+        .join(OnuType) \
+        .join(Port) \
+        .join(SpeedProfileUp) \
+        .join(SpeedProfileDown) \
+        .filter(Onu.ext_id == external_id).first()
 
-@router.get("/get_onu_signal/{ext_id}")
-def get_onu_signal(ext_id: int,  db: Session = Depends(get_db)) -> dict:
+    print(olt_name, onu_type_name, speed_down_name, speed_up_name)
+
+    response = db_onu.__dict__.copy()
+    response['olt_name'] = olt_name
+    response['onu_type_name'] = onu_type_name
+    response['speed_profile_up_name'] = speed_up_name
+    response['speed_profile_down_name'] = speed_down_name
+
+    
+    """     for onu, olt_name, onu_type_name, speed_profile_name, port_desc in db_onu:
+        print(olt_name, onu_type_name, speed_profile_name, port_desc ) """
+    return IResponseBase[OnuResponse](response=response)
+
+
+@router.get("/get_onu_signal/{ext_id}", response_model = IResponseBase[OnuSignals] )
+def get_onu_signals(ext_id: int,  db_session: Session = Depends(get_db)) -> dict:
     """
     Retorna la potencia óptica de la ONU
     """
+    response = onu_crud.get_onu_signals_by_ext_id(ext_id, db_session)
 
-    ##db_onu = db.query(Onu).join(Olt, Onu.olt_id == Olt.id).filter(Onu.ext_id == ext_id).first()
-    # db_onu = db.query(Card).join(Olt, Card.olt_id == Olt.id).filter(Onu.ext_id == ext_id).first()
-    db_onu = db.query(Onu).join(Port, Onu.port_id == Port.id).filter(Onu.ext_id == ext_id).first()
-   
-    print(db_onu.port.card)
-    """     connection_payload = Payload(
-        olt_type = "ZTE",
-        olt_name = db_onu.olt.name,
-        olt_ip_address = db_onu.olt.ip_address,
-        ssh_port = db_onu.olt.ssh_port,
-        ssh_user = db_onu.olt.ssh_user,
-        ssh_password = db_onu.olt.ssh_password,
-        snmp_port = db_onu.olt.snmp_port,
-        snmp_read_com = db_onu.olt.snmp_read_com,
-        snmp_write_com =db_onu.olt.snmp_write_com,
-        onu_interface = str(db_onu),
-        shelf = db_onu.shelf,
-        slot = db_onu.slot,
-        port = db_onu.port,
-        index = db_onu.index
-    )
+    time.sleep(5)
 
-    task = get_onu_signal_level.apply_async(args=[connection_payload])
-    res = task.get(disable_sync_subtasks=False) """
 
-    return db_onu
+    return IResponseBase[OnuSignals](response=response)

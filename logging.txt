@@ -2,7 +2,7 @@
 Welcome to ZXAN product C300 of ZTE Corporation
 ************************************************
 
-Last login time is 12.15.2022-22:32:57-utc, 0 authentication failures happened s
+Last login time is 12.23.2022-18:51:38-utc, 0 authentication failures happened s
 ince that time.
 Username:aherrera
 Password:
@@ -17,12 +17,12 @@ ZXAN(config-if)#onu 2 type ZXHNF660 sn BTPTDD2067B7
 .[Successful]
 ZXAN(config-if)#exit
 ZXAN(config)#interface gpon-onu_1/6/16:2
-ZXAN(config-if)#name Prueba
-ZXAN(config-if)#description Prueba
+ZXAN(config-if)#name 123-PRUEBA PRUEBA PRUEBA
+ZXAN(config-if)#description Onu de Prueba
 ZXAN(config-if)#sn-bind enable sn
-ZXAN(config-if)#tcont 1 profile SMARTOLT-50M-UP
+ZXAN(config-if)#tcont 1 profile SMARTOLT-30M-UP
 ZXAN(config-if)#gemport 1 tcont 1
-ZXAN(config-if)#gemport 1 traffic-limit downstream SMARTOLT-50M-DOWN
+ZXAN(config-if)#gemport 1 traffic-limit downstream SMARTOLT-10M-DOWN
 ZXAN(config-if)#switchport mode hybrid vport 1
 ZXAN(config-if)#service-port 1 vport 1 user-vlan 500 vlan 500
 ZXAN(config-if)#exit

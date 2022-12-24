@@ -4,7 +4,7 @@ Invoker Class
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from app.interface.task import Task
+# from app.interface.task import Task
 from app.device.command.protocol import ICommand, IOlt, IOnu
 from app.device.base.device_base import OltDeviceBase
 from app.device.config import initialize_modules
@@ -22,8 +22,8 @@ class OltController:
         return command.execute(vendor)
 
 
-    def register(self, task: Task) -> None:
-        self._commands[task] = task
+    """     def register(self, task: Task) -> None:
+        self._commands[task] = task """
 
 
     def get_command_history(self):
@@ -47,7 +47,10 @@ class OltController:
                 "host": olt.host,
                 "port": olt.telnet_port,
                 "username": olt.telnet_user,
-                "password": olt.telnet_password
+                "password": olt.telnet_password,
+                "snmp_port": olt.snmp_port,
+                "snmp_read_com": olt.snmp_read_com,
+                "snmp_write_com": olt.snmp_write_com
             }
 
             return vendor

@@ -74,3 +74,109 @@ class AuthorizeONU(ICommand):
 
     def description(self):
         return self._command_str
+
+@dataclass
+class PortTXValue(ICommand):
+    shelf: int
+    slot: int
+    port: int
+
+    _command_str = "Pontencia Tx de Puerto "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_port_tx(self.shelf, self.slot, self.port)
+
+    def description(self):
+        return self._command_str
+
+@dataclass
+class PortStatus(ICommand):
+    shelf: int
+    slot: int
+    port: int
+
+    _command_str = "Estatus de Puerto "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_port_status(self.shelf, self.slot, self.port)
+
+    def description(self):
+        return self._command_str
+
+@dataclass
+class PortAdminState(ICommand):
+    shelf: int
+    slot: int
+    port: int
+
+    _command_str = "Estado Administrativo de Puerto "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_port_admin_state(self.shelf, self.slot, self.port)
+
+    def description(self):
+        return self._command_str
+
+
+
+@dataclass
+class PortDescription(ICommand):
+    shelf: int
+    slot: int
+    port: int
+
+    _command_str = "Descripción del Puerto Óptico "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_port_description(self.shelf, self.slot, self.port)
+
+    def description(self):
+        return self._command_str
+
+
+@dataclass
+class OnuRXSignal(ICommand):
+    shelf: int
+    slot: int
+    port: int
+    index: int
+
+    _command_str = "Potencia óptica de ONU "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_onu_rx(self.shelf, self.slot, self.port, self.index)
+
+    def description(self):
+        return self._command_str
+
+
+@dataclass
+class OltRXSignal(ICommand):
+    shelf: int
+    slot: int
+    port: int
+    index: int
+
+    _command_str = "Potencia óptica de OLT "
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_olt_rx(self.shelf, self.slot, self.port, self.index)
+
+    def description(self):
+        return self._command_str
+
+    
+@dataclass
+class OnuState(ICommand):
+    shelf: int
+    slot: int
+    port: int
+    index: int
+
+    _command_str = "Estado de la ONU"
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        return olt_vendor.get_onu_state(self.shelf, self.slot, self.port, self.index)
+
+    def description(self):
+        return self._command_str

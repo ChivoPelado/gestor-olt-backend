@@ -15,6 +15,14 @@ def create_celery():
     celery_app.conf.update(worker_send_task_events=False)
     celery_app.conf.update(worker_prefetchmultiplier=1)
 
+    celery_app.conf.beat_schedule = {
+        'update-port-tx-power': {
+            'task': 'app.celery_task.tasks.add',
+            'schedule': 30.0,
+            'args': (16, 16)
+        }
+    }
+
     return celery_app
 
 def get_task_info(task_id):

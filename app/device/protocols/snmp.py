@@ -1,7 +1,10 @@
 from pysnmp import hlapi
+from celery import shared_task
 
 
-def get_request(target, oids, credential, port):
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5},
+             name='olt:get_request')
+def get_request(self, target, oids, credential, port):
     return get(target, oids, hlapi.CommunityData(credential), port)
 
 
@@ -16,7 +19,7 @@ def construct_object_types(list_of_oids):
     return object_types
 
 
-def get(target, oids, credentials, port=2162, engine=hlapi.SnmpEngine(), context=hlapi.ContextData()):
+def get(target, oids, credentials, port, engine=hlapi.SnmpEngine(), context=hlapi.ContextData()):
     handler = hlapi.getCmd(
         engine,
         credentials,
@@ -27,7 +30,7 @@ def get(target, oids, credentials, port=2162, engine=hlapi.SnmpEngine(), context
     return fetch(handler, 1)[0]
 
 
-def next_cmd(target, oid, credentials, port=2162, engine=hlapi.SnmpEngine(), context=hlapi.ContextData()):
+def next_cmd(target, oid, credentials, port, engine=hlapi.SnmpEngine(), context=hlapi.ContextData()):
     response = []
     for (errorIndication,
          errorStatus,

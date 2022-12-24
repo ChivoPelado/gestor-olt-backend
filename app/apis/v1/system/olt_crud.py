@@ -1,71 +1,104 @@
 from typing import List
 from sqlalchemy.orm import Session
+from app.database import get_db
 from app.core.models.system import Olt, Shelf, Card, Port, Vlan
-from app.interface.utils import Payload
-from app.celery_task.tasks import get_port_tx_signal_level
-from app.device.config import initialize_modules
-from app.device.base.device_base import OltDeviceBase
 from app.device.command.controller import OltController
 from app.device.command.commands import (
     GetUncfgONUs,
     GetOLTCards,
     GetOLTPorts,
     GetOLTVlans,
-    GetOLTShelf
+    GetOLTShelf,
+    PortTXValue,
+    PortAdminState,
+    PortStatus,
+    PortDescription,
+    OnuRXSignal,
+    OltRXSignal,
+    OnuState
 )
-import functools
+
+from fastapi_utils.tasks import repeat_every
+
 
 controller = OltController()
 
-def decorator_test(func):
-    @functools.wraps(func)
-    def wrapper_decorator(*args, **kwargs):
-        #Acciones anteriores
-        #print('*ARGS', args[0])
-        print('**KWRGS', kwargs['db'])
-        value = func(*args, **kwargs)
-        #Acciones posteriores
-        
-        return value
-    return wrapper_decorator
 
+@repeat_every(seconds=300, raise_exceptions=True)
+async def update_olt_values():
 
-#@decorator_test
+    print("Actualizando parámetros de OLT...")
+
+    db_session: Session = next(get_db())
+
+    for olt in db_session.query(Olt).all():
+        for card in olt.cards:
+            for port in card.ports:
+                shelf = olt.shelf[0].shelf
+                slot = port.slot
+                port_no = port.port
+                
+                tx_power = controller.get(PortTXValue(shelf, slot, port_no), olt)
+                admin_state = controller.get(PortAdminState(shelf, slot, port_no), olt)
+                port_status = controller.get(PortStatus(shelf, slot, port_no), olt)
+                port_descr = controller.get(PortDescription(shelf, slot, port_no), olt)
+                
+                port.tx_power = str(tx_power) 
+                port.admin_status = admin_state
+                port.operation_status = port_status
+                port.description = port_descr
+
+                db_session.commit()
+
+                
+#@repeat_every(seconds=30)
 async def test_point(db: Session, olt_id: int):
-    db_olt = db.query(Olt).filter(Olt.id == olt_id).first()
     
-    result_parsed = controller.get(GetOLTShelf(), db_olt)
-    #print(controller.get_command_history())
+    db_olt = db.query(Olt).filter(Olt.id == olt_id).first()
 
+    onu_tx = controller.get(OnuRXSignal(1, 6, 16, 2), db_olt) 
+    olt_tx = controller.get(OltRXSignal(1, 6, 16, 2), db_olt) 
+    onu_state = controller.get(OnuState(1, 6, 16, 2), db_olt) 
+    # await update_olt_values()
 
-
-    return result_parsed
+    print(onu_tx, olt_tx, onu_state)
+    #return result_parsed
 
 
 # Crea una nueva OLT
-async def create_olt(db: Session, olt: Olt) -> Olt:
+async def create_olt(name: str, ip_address: str, telnet_port: int, telnet_user: str, 
+    telnet_password: str, snmp_port: int, snmp_read_com: str, snmp_write_com: str,
+    hardware_ver: str, software_ver: str, db_session: Session) -> Olt:
     """ 
     Proceso de ingreso de una nueva OLT.
     El proceso descubre las tarjetas y los puertos de la olt
     y las aagrega a la base de datos    
     """
+
     # Registrar olt
-    db_olt = Olt(**dict(olt))
-    db.add(db_olt)
-    db.commit()
-    db.refresh(db_olt) 
+    db_olt = Olt(
+        name = name, host = ip_address, telnet_port = telnet_port, telnet_user = telnet_user, 
+        telnet_password = telnet_password, snmp_port =snmp_port, snmp_read_com = snmp_read_com, 
+        snmp_write_com = snmp_write_com, hardware_ver = hardware_ver, software_ver = software_ver
+        )
+
+    db_session.add(db_olt)
+    db_session.commit()
     
     # Obtener Shelf/Frame
-    await get_olt_shelf_from(olt=db_olt, db_session=db)
+    await get_olt_shelf_from(olt=db_olt, db_session=db_session)
 
     # Obtener tarjetas
-    await get_olt_cards_from(olt=db_olt, db_session=db)
+    await get_olt_cards_from(olt=db_olt, db_session=db_session)
 
     # Obtener puertos
-    await get_card_ports_from(olt=db_olt, db_session=db)
+    await get_card_ports_from(olt=db_olt, db_session=db_session)
 
     # Obtener VLANs
-    await get_vlans_from(olt=db_olt, db_session=db)
+    await get_vlans_from(olt=db_olt, db_session=db_session)
+
+    # Actualiza detalles de Olt e inicia termporizador
+    await update_olt_values()
 
     return db_olt
 
@@ -135,9 +168,34 @@ async def get_vlans_from(olt: Olt, db_session: Session):
     return db_vlan
 
 
+def get_olt_vlans(db: Session, olt_id: int):
+
+    return db.query(Vlan).filter(Vlan.olt_id == olt_id).all()
+
+
+def delete_olt_by_id(olt_id: int, db_session: Session) -> bool:
+    """Elimina una OLT del sistema y todos sus elementos hijos.
+
+    Args:
+        olt_id (int): ID de OLT a eliminar
+        db_session (Session): Session de Base de Datos
+
+    Returns:
+        bool: Verdadero si se elimina correctamente, Falso en el caso de no existir OLT
+    """
+    db_olt = db_session.query(Olt).filter(Olt.id == olt_id).first()
+    if db_olt:
+        db_session.delete(db_olt)
+        db_session.commit()
+
+        return True
+    return False
+
+
+
 # Devuelve OLT desde el ip ingresado
-def vlidate_used_ports(db: Session, olt_ip: str, telnet_port: int, snmp_port: int) -> bool:
-    db_olts = db.query(Olt).filter(Olt.host == olt_ip).all()
+def vlidate_used_ports(db_session: Session, olt_ip: str, telnet_port: int, snmp_port: int) -> bool:
+    db_olts = db_session.query(Olt).filter(Olt.host == olt_ip).all()
     for olt in db_olts:
         if olt.telnet_port == telnet_port or olt.snmp_port == snmp_port:
             return False
@@ -154,49 +212,3 @@ def get_olts(db: Session, skip: int = 0, limit: int = 100) -> List[Olt]:
     return db.query(Olt).offset(skip).limit(limit).all()
     
 
-
-
-""" async def get_card_ports(db:Session, olt: Olt):
-    db_ports = []
-    ports: dict = {}
-
-    for card in olt.cards:
-        if card.cfg_type == "GTGH":
-            for port_number in (port + 1 for port in range(card.port)):
-                connection_payload = Payload(
-                    olt_type = "ZTE",
-                    olt_name = olt.name,
-                    olt_ip_address = olt.ip_address,
-                    ssh_port = olt.ssh_port,
-                    ssh_user = olt.ssh_user,
-                    ssh_password = olt.ssh_password,
-                    snmp_port = olt.snmp_port,
-                    snmp_read_com = olt.snmp_read_com,
-                    snmp_write_com =olt.snmp_write_com,
-                    onu_interface = "",
-                    shelf = card.shelf,
-                    slot = card.slot,
-                    port = port_number,
-                    index = ""
-                )
-                task = get_port_tx_signal_level.apply_async(args=[connection_payload], queue='olt')
-                tx_power = task.get(disable_sync_subtasks=False)
-                print(tx_power)
-                db_port = Port(
-                    card_id = card.id,
-                    port_no = port_number,
-                    pon_type = "GPON",
-                    admin_status = "Enabled",
-                    operation_status = "Up",
-                    description = "Description",
-                    tx_power = tx_power,
-                    onu_count = 0,
-                    # online_onu_count = 0,
-                    average_onu_signal = 0
-                )
-
-                print(db_port.port_no)
-                db_ports.append(db_port)
-    db.bulk_save_objects(db_ports)
-    db.commit()
-    return db_ports """

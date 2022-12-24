@@ -26,9 +26,10 @@ class Olt(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    shelf = relationship("Shelf", backref="olt")
-    cards = relationship("Card", backref="olt")
-    onus = relationship("Onu", backref="olt")
+    shelf = relationship("Shelf", backref="olt", cascade="all,delete")
+    cards = relationship("Card", backref="olt", cascade="all,delete")
+    onus = relationship("Onu", backref="olt", cascade="all,delete")
+    vlans = relationship("Vlan", backref="olt", cascade="all,delete")
 
     @hybrid_property
     def connection_params(self):
@@ -37,7 +38,10 @@ class Olt(Base):
             "host": self.host,
             "port": self.telnet_port,
             "username": self.telnet_user,
-            "password": self.telnet_password
+            "password": self.telnet_password,
+            "snmp_port": self.snmp_port,
+            "snmp_read_com": self.snmp_read_com,
+            "snmp_write_com": self.snmp_write_com
         }
 
 class Shelf(Base):
@@ -75,7 +79,7 @@ class Card(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
-    ports = relationship("Port", backref="card")
+    ports = relationship("Port", backref="card", cascade="all,delete")
 
 class Port(Base):
     """
@@ -95,7 +99,7 @@ class Port(Base):
     onu_count = Column(Integer, nullable=False, default=0)
     average_onu_signal = Column(Integer, nullable=False, default=0)
 
-    onus = relationship("Onu", backref="port")
+    onus = relationship("Onu", backref="port", cascade="all,delete")
 
     @hybrid_property
     def online_onu_count(self):
@@ -120,6 +124,7 @@ class Port(Base):
         return select(func.count(1).filter(Onu.status == "Offline")). \
             where(Onu.port_id == cls.id). \
             label('online_onu_count')
+
 
 class Vlan(Base):
     """
@@ -153,19 +158,33 @@ class OnuType(Base):
 
     onus = relationship("Onu", backref="onu_type")
 
-class SpeedProfile(Base):
+class SpeedProfileUp(Base):
     """
     Modelo representa perfiles de velocidad disponibles en las OLT
     """
-    __tablename__ = "speed_profile"
+    __tablename__ = "speed_profile_up"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     speed = Column(String, nullable=False)
-    direction = Column(String, nullable=False)
+    direction = Column(String, nullable=False, default="upload")
     type = Column(String, nullable=False)
   
-    onus = relationship("Onu", backref="speed_profile")
+    onus = relationship("Onu", backref="speed_profile_up")
+
+class SpeedProfileDown(Base):
+    """
+    Modelo representa perfiles de velocidad disponibles en las OLT
+    """
+    __tablename__ = "speed_profile_down"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    speed = Column(String, nullable=False)
+    direction = Column(String, nullable=False, default="download")
+    type = Column(String, nullable=False)
+  
+    onus = relationship("Onu", backref="speed_profile_down")
 
 class Onu(Base):
     """
@@ -177,7 +196,8 @@ class Onu(Base):
     olt_id = Column(Integer, ForeignKey("olt.id"))
     port_id = Column(Integer, ForeignKey("port.id"))
     onu_type_id = Column(Integer, ForeignKey("onu_type.id"))
-    speed_profile_id = Column(Integer, ForeignKey("speed_profile.id"))
+    speed_profile_up_id = Column(Integer, ForeignKey("speed_profile_up.id"))
+    speed_profile_down_id = Column(Integer, ForeignKey("speed_profile_down.id"))
     ext_id = Column(Integer, index=True)
     pon_type = Column(String, nullable=False, default="GPON")
     shelf = Column(Integer, nullable=False)
@@ -190,6 +210,7 @@ class Onu(Base):
     comment = Column(String, default="n/a")
     status = Column(String, nullable=False, default="n/a")
     signal = Column(String, nullable=False, default="n/a")
+    signal_1310 = Column(String, nullable=False, default="n/a")
     onu_mode = Column(String, nullable=False, default="Routing")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())

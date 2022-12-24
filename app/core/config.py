@@ -2,6 +2,7 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+from datetime import timedelta
 
 
 class Settings(BaseSettings):
@@ -29,6 +30,7 @@ class Settings(BaseSettings):
     # Parámetros Fastapi-Login 
     SECRET: str
     TOKEN_URL: str
+    DEFAULT_EXPIRY = timedelta(hours=6)
 
     
 

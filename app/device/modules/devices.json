@@ -27,6 +27,12 @@
         "get_cards": "display board 0",
         "get_onu_types": "display ont-srvprofile gpon all",
         "get_vlans": "display vlan all"
+      },
+      "MIB": {
+        "HUAWEI-XPON-MIB::hwGponDeviceOltControlDespt": "1.3.6.1.4.1.2011.6.128.1.1.2.21.1.6.",
+        "HUAWEI-XPON-MIB::hwGponDeviceOltControlStatus": "1.3.6.1.4.1.2011.6.128.1.1.2.21.1.10.",
+        "HUAWEI-XPON-MIB::hwGponDeviceOltControlOpticModuleStatus": "1.3.6.1.4.1.2011.6.128.1.1.2.21.1.13.",
+        "HUAWEI-XPON-MIB::hwGponOltOpticsDdmInfoTxPower": "1.3.6.1.4.1.2011.6.128.1.1.2.23.1.4."
       }
     },
     {
@@ -44,7 +50,8 @@
       ],
       "command": {
         "get_olt_shelf": "show shelf",
-        "get_uncfg_onu": "show pon onu uncfg",
+        "get_uncfg_onu_gpon": "show gpon onu uncfg",
+        "get_uncfg_onu_pon": "show pon onu uncfg",
         "show_onus_by_if": "show gpon onu state %s",
         "get_cards": "show card",
         "get_onu_types": "show onu-type gpon",
@@ -72,6 +79,15 @@
         "enable_mode_forward": "security-mgmt 998 state enable mode forward ingress-type lan protocol web https",
         "enable_ingress_type": "security-mgmt 999 state enable ingress-type lan protocol ftp telnet ssh snmp tr069",
         "exit_mode": "exit"
+      },
+      "MIB": {
+        "ifAdminStatus": "1.3.6.1.2.1.2.2.1.7.",
+        "ifDescr": "1.3.6.1.2.1.2.2.1.2.",
+        "ifOperStatus": "1.3.6.1.2.1.2.2.1.8.",
+        "txPower": "1.3.6.1.4.1.3902.1015.1010.11.2.1.2.",
+        "zxGponOntPhaseState": "1.3.6.1.4.1.3902.1012.3.28.2.1.4.",
+        "zxAnOpticalPowerTxCurrValue": "1.3.6.1.4.1.3902.1015.3.1.13.1.4.",
+        "zxGponPonRxOpticalLevel": "1.3.6.1.4.1.3902.1012.3.50.12.1.1.10."
       }
     }
   ]

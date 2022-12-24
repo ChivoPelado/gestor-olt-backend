@@ -3,7 +3,7 @@
 from celery import shared_task
 from typing import List
 from ntc_templates.parse import parse_output
-from app.device.protocols import telnet
+from app.device.protocols import telnet, snmp
 from abc import ABC, abstractmethod
 import os
 
@@ -22,7 +22,8 @@ class OltDeviceBase(ABC):
     """
 
     def __init__(self, hardware_ver: str, device_type: str, software_ver: List, pon_type: List[str],
-        port_begin: int, cards: List[dict[str:any]], command: dict[str: any],_connection_pars = {}
+        port_begin: int, cards: List[dict[str:any]], command: dict[str: any], MIB: dict[str: any],
+        _connection_pars = {}
     ) -> None:
 
         """ 
@@ -38,6 +39,7 @@ class OltDeviceBase(ABC):
         self.port_begin = port_begin                # indicador de inicio del primer puerto
         self.cards = cards                          # tarjetas soportadas, número de puertos y rol
         self.command = command                      # listas de comandos
+        self.MIB = MIB
         
         #Uso interno para recolección de información de conexión
         
@@ -116,6 +118,7 @@ class OltDeviceBase(ABC):
     def _excecute_and_parse(self, command, expect_string=None) -> List[dict[str: any]]:
         """ Ejecuta el/los comandos mediante telnet usando Netmiko """
         
+        
         task = telnet.send_command.apply_async(args=[self._connection_pars, [command], expect_string], queue='olt')
         result = task.get(disable_sync_subtasks=False)
         return  parse_output(platform=self.device_type, command=command, data=result.get(command))
@@ -128,3 +131,16 @@ class OltDeviceBase(ABC):
         result = task.get(disable_sync_subtasks=False)
         return  result
     
+
+    def _snmp_query(self, oid: str) -> any:
+        """ Ejecuta las consultas SNMP desde la OID entregada"""
+
+        task = snmp.get_request.apply_async(args=[
+            self._connection_pars.get('host'), 
+            [oid], 
+            self._connection_pars.get('snmp_write_com'),
+            self._connection_pars.get('snmp_port')
+            ], queue='olt'
+        )
+        result = task.get(disable_sync_subtasks=False)
+        return result

@@ -8,7 +8,8 @@ from ntc_templates.parse import parse_output
 from typing import Final
 import os
 
-os.environ["NTC_TEMPLATES_DIR"] = "templates"
+
+#os.environ["NTC_TEMPLATES_DIR"] = "templates"
 
 CONN_TIMEOUT = 10
 GLOBAL_DELAY_FACTOR = 3
@@ -19,7 +20,11 @@ SESSION_LOG_FILE = "logging.txt"
 def send_command(self, device: dict, commands = [], expect_string = None):
     result = {}
     device_handler = {
-        **device,
+        "host": device.get("host"),
+        "port": device.get("port"),
+        "username": device.get("username"),
+        "password": device.get("password"),
+        "device_type": device.get("device_type"),
         "conn_timeout": CONN_TIMEOUT,
         "global_delay_factor": GLOBAL_DELAY_FACTOR,
         "session_log": SESSION_LOG_FILE
