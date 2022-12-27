@@ -19,6 +19,7 @@ from app.device.command.commands import (
 )
 
 from fastapi_utils.tasks import repeat_every
+from fastapi import Request
 
 
 controller = OltController()
@@ -98,7 +99,7 @@ async def create_olt(name: str, ip_address: str, telnet_port: int, telnet_user: 
     await get_vlans_from(olt=db_olt, db_session=db_session)
 
     # Actualiza detalles de Olt e inicia termporizador
-    await update_olt_values()
+   # await update_olt_values()
 
     return db_olt
 

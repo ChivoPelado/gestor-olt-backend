@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # Parámetros Fastapi-Login 
     SECRET: str
     TOKEN_URL: str
-    DEFAULT_EXPIRY = timedelta(hours=6)
+    DEFAULT_EXPIRY = timedelta(hours=6) # Expiración de token en 6 horas
 
     
 

@@ -125,8 +125,10 @@ class OnuResponse(BaseModel):
     name: str
     status: str
     signal: str
+    signal_1310: str
     comment: str
     onu_mode: str
+    interface: str
     created_at: Optional[datetime]
    
     class Config:

@@ -1,46 +1,58 @@
-************************************************
-Welcome to ZXAN product C300 of ZTE Corporation
-************************************************
 
-Last login time is 12.23.2022-18:51:38-utc, 0 authentication failures happened s
-ince that time.
-Username:aherrera
-Password:
-ZXAN#
-ZXAN#
-ZXAN#terminal length 0
-ZXAN#
-ZXAN#configure terminal
-%Info 20272: Enter configuration commands, one per line. End with CTRL/Z.
-ZXAN(config)#interface gpon-olt_1/6/16
-ZXAN(config-if)#onu 2 type ZXHNF660 sn BTPTDD2067B7
-.[Successful]
-ZXAN(config-if)#exit
-ZXAN(config)#interface gpon-onu_1/6/16:2
-ZXAN(config-if)#name 123-PRUEBA PRUEBA PRUEBA
-ZXAN(config-if)#description Onu de Prueba
-ZXAN(config-if)#sn-bind enable sn
-ZXAN(config-if)#tcont 1 profile SMARTOLT-30M-UP
-ZXAN(config-if)#gemport 1 tcont 1
-ZXAN(config-if)#gemport 1 traffic-limit downstream SMARTOLT-10M-DOWN
-ZXAN(config-if)#switchport mode hybrid vport 1
-ZXAN(config-if)#service-port 1 vport 1 user-vlan 500 vlan 500
-ZXAN(config-if)#exit
-ZXAN(config)#pon-onu-mng gpon-onu_1/6/16:2
-ZXAN(gpon-onu-mng 1/6/16:2)#flow mode 1 tag-filter vlan-filter untag-filter discard
-ZXAN(gpon-onu-mng 1/6/16:2)#flow 1 pri 0 vlan 500
-ZXAN(gpon-onu-mng 1/6/16:2)#gemport 1 flow 1
-ZXAN(gpon-onu-mng 1/6/16:2)#switchport-bind switch_0/1 iphost 1
-ZXAN(gpon-onu-mng 1/6/16:2)#switchport-bind switch_0/1 veip 1
-ZXAN(gpon-onu-mng 1/6/16:2)#vlan-filter-mode iphost 1 tag-filter vlan-filter untag-filter discard
-ZXAN(gpon-onu-mng 1/6/16:2)#vlan-filter iphost 1 pri 0 vlan 500
-ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/1 from-onu
-ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/2 from-onu
-ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/3 from-onu
-ZXAN(gpon-onu-mng 1/6/16:2)#dhcp-ip ethuni eth_0/4 from-onu
-ZXAN(gpon-onu-mng 1/6/16:2)#security-mgmt 998 state enable mode forward ingress-type lan protocol web https
-ZXAN(gpon-onu-mng 1/6/16:2)#security-mgmt 999 state enable ingress-type lan protocol ftp telnet ssh snmp tr069
-ZXAN(gpon-onu-mng 1/6/16:2)#exit
-ZXAN(config)#exit
-ZXAN#
-ZXAN#exit
+Warning: Telnet is not a secure protocol, and it is recommended to use Stelnet.
+
+>>User name:admincf
+>>User password:
+
+
+  Huawei Integrated Access Software (MA5800).
+  Copyright(C) Huawei Technologies Co., Ltd. 2002-2018. All rights reserved.
+
+  -----------------------------------------------------------------------------
+  User last login information:
+  -----------------------------------------------------------------------------
+  Access Type : Telnet
+  IP-Address  : 177.234.224.136
+  Login  Time : 2022-12-26 21:41:01-06:00
+  Logout Time : 2022-12-26 21:41:07-06:00
+  -----------------------------------------------------------------------------
+
+MA5800-X15>
+
+MA5800-X15>
+
+MA5800-X15>undo smart 
+  Interactive function is disabled
+
+MA5800-X15>scroll 
+
+MA5800-X15>
+
+MA5800-X15>enable 
+
+MA5800-X15#
+
+MA5800-X15#
+
+MA5800-X15#
+
+MA5800-X15#display vlan all 
+  -----------------------------------------------------------------------
+  VLAN   Type      Attribute  STND-Port NUM   SERV-Port NUM  VLAN-Con NUM
+  -----------------------------------------------------------------------
+     1   smart     common                 8               0             -
+   100   smart     common                 3            3749             -
+   200   smart     common                 0               0             -
+   300   smart     common                 0               0             -
+   400   smart     common                 0               0             -
+   500   smart     common                 0              45             -
+   600   smart     common                 0               5             -
+   700   smart     common                 1               0             -
+  -----------------------------------------------------------------------
+  Total: 8
+  Note : STND-Port--standard port, SERV-Port--service virtual port,
+         VLAN-Con--vlan-connect
+
+MA5800-X15#
+
+MA5800-X15#exit

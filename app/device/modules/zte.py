@@ -254,7 +254,7 @@ class Zte(OltDeviceBase):
 
         result = int(result[oid])
 
-        state = "En línea" if result == 3 else "LOS" if result == 1 else "Fuera de Línea" if result == 6 else "Falla Eléctrica" if result == 4 else "Otro\Desconocido" 
+        state = "En Línea" if result == 3 else "LOS" if result == 1 else "Fuera de Línea" if result == 6 else "Falla Eléctrica" if result == 4 else "Otro \ Desconocido" 
         return state
 
         

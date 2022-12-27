@@ -8,6 +8,8 @@ from datetime import datetime
 from app.device.command.protocol import ICommand, IOlt, IOnu
 from app.device.base.device_base import OltDeviceBase
 from app.device.config import initialize_modules
+from sqlalchemy.orm import Session
+
 
 
 
@@ -15,10 +17,14 @@ from app.device.config import initialize_modules
 class OltController:
     _commands = {}
     _history = []
+   
 
-    def get(self, command: ICommand, olt: IOlt, onu: IOnu = None) -> None:
+    def get(self, command: ICommand, olt: IOlt, onu: IOnu = None,  db_session: Session = None) -> None:
+
         vendor = self._get_olt_vendor_item(olt)
+
         self._history.append((time.time(), command.description(), olt.name))
+        print(self.get_command_history())
         return command.execute(vendor)
 
 
@@ -34,6 +40,7 @@ class OltController:
                 f" : {row[2]}"
             )
     
+
 
     def _get_olt_vendor_item(self, olt: IOlt) -> OltDeviceBase:
 

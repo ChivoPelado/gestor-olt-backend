@@ -104,24 +104,24 @@ class Port(Base):
     @hybrid_property
     def online_onu_count(self):
         """Retorna la cantidad de ONUs en estado Online"""
-        return sum(onu.status == "Online" for onu in self.onus)
+        return sum(onu.status == "En Línea" for onu in self.onus)
 
     @hybrid_property
     def offline_onu_count(self):
         """Retorna la cantidad de ONUs en estado Offline"""
-        return sum(onu.status == "Offline" for onu in self.onus)
+        return sum(onu.status == "Fuera de Línea" for onu in self.onus)
 
     @online_onu_count.expression
     def online_onu_count(self, cls):
         """Retorna la cantidad de ONUs en estado Online en expresion SQL"""
-        return select(func.count(1).filter(Onu.status == "Online")). \
+        return select(func.count(1).filter(Onu.status == "En Línea")). \
             where(Onu.port_id == cls.id). \
             label('online_onu_count')
 
     @offline_onu_count.expression
     def offline_onu_count(self, cls):
         """Retorna la cantidad de ONUs en estado Offline en expresion SQL"""
-        return select(func.count(1).filter(Onu.status == "Offline")). \
+        return select(func.count(1).filter(Onu.status == "Fuera de Línea")). \
             where(Onu.port_id == cls.id). \
             label('online_onu_count')
 
@@ -198,6 +198,9 @@ class Onu(Base):
     onu_type_id = Column(Integer, ForeignKey("onu_type.id"))
     speed_profile_up_id = Column(Integer, ForeignKey("speed_profile_up.id"))
     speed_profile_down_id = Column(Integer, ForeignKey("speed_profile_down.id"))
+    region_id = Column(Integer, ForeignKey("region.id"))
+    zone_id = Column(Integer, ForeignKey("zone.id"))
+    nap_id = Column(Integer, ForeignKey("nap.id"))
     ext_id = Column(Integer, index=True)
     pon_type = Column(String, nullable=False, default="GPON")
     shelf = Column(Integer, nullable=False)
@@ -214,6 +217,11 @@ class Onu(Base):
     onu_mode = Column(String, nullable=False, default="Routing")
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+
+    @hybrid_property
+    def interface(self):
+        """Retorna la cantidad de ONUs en estado Online"""
+        return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"
 
     def __str__(self):
         return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"

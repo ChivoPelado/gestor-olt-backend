@@ -1,7 +1,7 @@
 """
 APIs para la gestión de ONUs
 """
-from fastapi import APIRouter, Form, Depends
+from fastapi import APIRouter, HTTPException, status, Form, Depends
 from typing import List
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -39,20 +39,8 @@ async def authorize_onu(
     
     db: Session = Depends(get_db)): 
     
-    authorized_onu = onu_crud.authorize_onu( 
-        olt_id,
-        slot,
-        port,
-        onu_sn, 
-        onu_type,
-        onu_mode,
-        vlan,
-        down_speed,
-        up_speed,
-        name,
-        comment,
-        onu_ext_id,
-        db=db)
+    authorized_onu = onu_crud.authorize_onu( olt_id, slot, port, onu_sn, onu_type,onu_mode, vlan,
+        down_speed, up_speed, name, comment, onu_ext_id, db=db)
 
     return authorized_onu #IResponseBase[OnuResponse](response=authorized_onu)
 
@@ -66,6 +54,9 @@ async def authorize_onu(onu: OnuCreate, db: Session = Depends(get_db)):
 @router.get("/get_onu_by_ext_id/{external_id}",  response_model=IResponseBase[OnuResponse])
 async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)): 
    
+    if not db.query(Onu).filter(Onu.ext_id == external_id).first():
+         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ONU con id {external_id} no existe")
+
     response = {}
     db_onu, olt_name, onu_type_name, speed_up_name, speed_down_name = db.query(
         Onu, Olt.name, OnuType.name, SpeedProfileUp.name, SpeedProfileDown.name) \
@@ -75,6 +66,9 @@ async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)):
         .join(SpeedProfileUp) \
         .join(SpeedProfileDown) \
         .filter(Onu.ext_id == external_id).first()
+    
+    if not db_onu:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ONU con id {external_id} no existe")
 
     print(olt_name, onu_type_name, speed_down_name, speed_up_name)
 
@@ -83,6 +77,7 @@ async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)):
     response['onu_type_name'] = onu_type_name
     response['speed_profile_up_name'] = speed_up_name
     response['speed_profile_down_name'] = speed_down_name
+    response['interface'] = db_onu.interface
 
     
     """     for onu, olt_name, onu_type_name, speed_profile_name, port_desc in db_onu:
@@ -101,3 +96,33 @@ def get_onu_signals(ext_id: int,  db_session: Session = Depends(get_db)) -> dict
 
 
     return IResponseBase[OnuSignals](response=response)
+
+
+@router.get("/get_all_onus/", response_model = IResponseBase[List[OnuResponse]] )
+def get_all_onus( db_session: Session = Depends(get_db)) -> dict:
+  
+    db_onus = db_session.query(
+        Onu, Olt.name, SpeedProfileDown.name, SpeedProfileUp.name, OnuType.name
+        ) \
+        .join(Olt) \
+        .where(
+            Onu.olt_id == Olt.id, 
+            Onu.speed_profile_down_id == SpeedProfileDown.id,
+            Onu.speed_profile_up_id == SpeedProfileUp.id,
+            Onu.onu_type_id == OnuType.id
+            ).all()
+
+    response = []
+    onu = {}
+    for query in db_onus:
+        onu = query[0].__dict__
+        onu['olt_name'] = query[1]
+        onu['speed_profile_down_name'] = query[2]
+        onu['speed_profile_up_name'] = query[3]
+        onu['onu_type_name'] = query[4]
+        onu['interface'] = query[0].interface
+
+        print (query[0].interface)
+        response.append(onu)
+
+    return IResponseBase[List[OnuResponse]](response=list(response))
