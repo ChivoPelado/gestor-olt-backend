@@ -17,3 +17,9 @@ def get_agent(username: str, db: Optional[Session] = None, session_provider: Cal
 
     agent_db = db.query(Agent).where(Agent.email == username).first()
     return agent_db
+
+def get_agent_id_by_email(email: str, db_session: Session) -> (tuple | None ):
+
+    agent_id = db_session.query(Agent.id).filter(Agent.email == email).first()
+
+    return agent_id

@@ -30,8 +30,8 @@ class ZoneResponse(ZoneCreate):
 
 
 class NapCreate(BaseModel):
-    zone_id: int
     region_id: int
+    zone_id: int
     name: str
     ports: int
     latitude: float

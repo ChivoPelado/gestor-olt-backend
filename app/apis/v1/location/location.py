@@ -3,6 +3,7 @@ APIs, para la gestión de Localización (Regiones, zonas y naps)
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.utils.security import login_manager
 from app.core.schemas.location import (
     RegionCreate, RegionResponse, ZoneCreate, ZoneResponse, NapCreate, NapResponse
 ) 
@@ -42,7 +43,7 @@ async def read_region(region_id: int, db_session: Session = Depends(get_db)):
 
 
 @router.get("/region/get_regions/", response_model=IResponseBase[List[RegionResponse]])
-async def list_regions(db_session: Session = Depends(get_db)):
+async def list_regions(db_session: Session = Depends(get_db), user = Depends(login_manager)):
     """API para la lectura de  todas las regiones"""
 
     db_regions = crud.get_regions(db_session)

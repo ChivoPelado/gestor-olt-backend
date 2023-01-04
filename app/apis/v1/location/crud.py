@@ -1,5 +1,5 @@
 """
-CRUD para la gestión de Regiones
+CRUD para la gestión de Regiones, Zonas y Naps
 """
 from typing import List
 from sqlalchemy.orm import Session
@@ -198,10 +198,18 @@ def create_zone(db_session: Session, region_id: int, zone: Zone) -> Zone:
 
 
 def create_zones(zone: List[Zone], db: Session) -> bool:
+    """crud para la creación masiva de zonas
+
+    Args:
+        zone (List[Zone]): lista de objetos Zone
+        db (Session): Sesión de db
+
+    Returns:
+        bool: verdadero si las zonas se crearon correctamente, falso en caso contrario
+    """
 
     zones = []
     for o_zone in zone:
-        print(o_zone)
         zones.append(Zone(**dict(o_zone)))
 
     try:
@@ -354,6 +362,15 @@ def create_nap(db_session: Session, zone_id: int, nap: Nap) -> Nap:
 
 
 def create_naps(nap: List[Nap], db: Session) -> bool:
+    """crud para la creación masiva de naps
+
+    Args:
+        nap (List[Nap]): lista de objetos Nap
+        db (Session): Sesión de db
+
+    Returns:
+        bool: verdadero si las Naps se crearon correctamente, falso en caso contrario
+    """
 
     naps = []
     for o_nap in nap:
@@ -367,6 +384,7 @@ def create_naps(nap: List[Nap], db: Session) -> bool:
     except IntegrityError as err:
         print(err)
         return False
+
 
 # Revisar proceso....
 def delete_nap(db_session: Session, nap: Nap) -> None:

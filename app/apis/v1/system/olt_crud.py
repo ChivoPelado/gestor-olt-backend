@@ -1,7 +1,7 @@
 from typing import List
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.core.models.system import Olt, Shelf, Card, Port, Vlan
+from app.core.models.system import Olt, Shelf, Card, Port, Vlan, Onu
 from app.device.command.controller import OltController
 from app.device.command.commands import (
     GetUncfgONUs,
@@ -15,18 +15,20 @@ from app.device.command.commands import (
     PortDescription,
     OnuRXSignal,
     OltRXSignal,
-    OnuState
+    OnuState,
+    GetONUAttenuation,
+    TestAuthorizeONU
 )
-
+from celery import shared_task
 from fastapi_utils.tasks import repeat_every
 from fastapi import Request
 
 
 controller = OltController()
 
-
-@repeat_every(seconds=300, raise_exceptions=True)
-async def update_olt_values():
+# 
+@shared_task(name='recurrent:update_olt_values')
+def update_olt_values():
 
     print("Actualizando parámetros de OLT...")
 
@@ -51,20 +53,30 @@ async def update_olt_values():
 
                 db_session.commit()
 
-                
-#@repeat_every(seconds=30)
-async def test_point(db: Session, olt_id: int):
+
+@repeat_every(seconds=300, raise_exceptions=True)
+def start_recurrent_task():
+    task = update_olt_values.apply_async(queue='recurrent')
+    print(task.id)
+
+
+def test_point(db: Session, olt_id: int, request: Request, user: any):
     
     db_olt = db.query(Olt).filter(Olt.id == olt_id).first()
+    db_onu = db.query(Onu).first()
 
-    onu_tx = controller.get(OnuRXSignal(1, 6, 16, 2), db_olt) 
+    """     onu_tx = controller.get(OnuRXSignal(1, 6, 16, 2), db_olt) 
     olt_tx = controller.get(OltRXSignal(1, 6, 16, 2), db_olt) 
-    onu_state = controller.get(OnuState(1, 6, 16, 2), db_olt) 
+    onu_state = controller.get(OnuState(1, 6, 16, 2), db_olt)  """
+    
+    response = controller.get(TestAuthorizeONU(), db_olt)
+    # delete_onu = controller.get(GetONUAttenuation(db_onu), db_olt)
     # await update_olt_values()
-
-    print(onu_tx, olt_tx, onu_state)
+    
+    #print(delete_onu)
+    # print(onu_tx, olt_tx, onu_state)
     #return result_parsed
-
+    return response
 
 # Crea una nueva OLT
 async def create_olt(name: str, ip_address: str, telnet_port: int, telnet_user: str, 
@@ -99,7 +111,10 @@ async def create_olt(name: str, ip_address: str, telnet_port: int, telnet_user: 
     await get_vlans_from(olt=db_olt, db_session=db_session)
 
     # Actualiza detalles de Olt e inicia termporizador
-   # await update_olt_values()
+    # await update_olt_values()
+    await start_recurrent_task()
+    #task = update_olt_values.apply_async(queue='recurrent')
+    #result = task.get(disable_sync_subtasks=False)
 
     return db_olt
 

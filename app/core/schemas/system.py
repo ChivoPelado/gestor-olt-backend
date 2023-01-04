@@ -120,15 +120,18 @@ class OnuResponse(BaseModel):
     serial_no: str
     vlan: int
     onu_mode: str
-    speed_profile_up_name: str
-    speed_profile_down_name: str
+    upload_speed: str
+    download_speed: str
     name: str
+    catv: str
+    admin_status: str
     status: str
     signal: str
     signal_1310: str
     comment: str
     onu_mode: str
     interface: str
+    onu_type: OnuTypeResponse
     created_at: Optional[datetime]
    
     class Config:

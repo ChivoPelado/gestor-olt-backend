@@ -18,7 +18,8 @@ class BaseConfig(BaseSettings):
         # default queue
         Queue("celery"),
         # custom queue
-        Queue("olt")
+        Queue("olt"),
+        Queue("recurrent")
     )
 
     CELERY_TASK_ROUTES = (route_task,)

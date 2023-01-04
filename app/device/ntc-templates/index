@@ -17,6 +17,7 @@ huawei_display_board_(if).textfsm, .*, huawei, display board
 huawei_display_frame_desc.textfsm, .*, huawei, display frame desc
 huawei_display_ont_autofind_all.textfsm, .*, huawei, display ont autofind all
 huawei_display_ont-srvprofile_gpon_all.textfsm, .*, huawei, display ont-srvprofile gpon all
+huawei_display_service-port_sort_by_vlan.textfsm, .*, huawei, display service-port port (\d+/\d+/\d+) sort-by vlan
 huawei_display_vlan_all.textfsm, .*, huawei, display vlan all
 #arista_eos_show_vlan.textfsm, .*, arista_eos, sh[[ow]] vl[[an]]
 

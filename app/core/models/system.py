@@ -201,16 +201,21 @@ class Onu(Base):
     region_id = Column(Integer, ForeignKey("region.id"))
     zone_id = Column(Integer, ForeignKey("zone.id"))
     nap_id = Column(Integer, ForeignKey("nap.id"))
-    ext_id = Column(Integer, index=True)
+    ext_id = Column(Integer, unique=True, index=True)
     pon_type = Column(String, nullable=False, default="GPON")
     shelf = Column(Integer, nullable=False)
     slot = Column(Integer, nullable=False)
     port_no = Column(Integer, nullable=False)
     index = Column(Integer)
+    srvc_port = Column(Integer, default=1)
     serial_no = Column(String, unique=True, index=True, nullable=False)
     vlan = Column(Integer, nullable=False)
+    upload_speed = Column(String, nullable=False)
+    download_speed = Column(String, nullable=False)
     name = Column(String, default="n/a")
     comment = Column(String, default="n/a")
+    catv = Column(String, nullable=False, default="Enabled")
+    admin_status = Column(String, nullable=False, default="Enabled")
     status = Column(String, nullable=False, default="n/a")
     signal = Column(String, nullable=False, default="n/a")
     signal_1310 = Column(String, nullable=False, default="n/a")
@@ -220,11 +225,10 @@ class Onu(Base):
 
     @hybrid_property
     def interface(self):
-        """Retorna la cantidad de ONUs en estado Online"""
         return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"
 
     def __str__(self):
-        return f"gpon-onu_{self.shelf}/{self.slot}/{self.port_no}:{self.index}"
+        return self.interface
 
     
 

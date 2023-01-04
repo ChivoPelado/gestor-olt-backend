@@ -116,7 +116,7 @@ async def get_olt_vlans(olt_id:int, db: Session = Depends(get_db)):
 
 
 @router.get("/test_point/{olt_id}")
-async def test_point(olt_id:int, request: Request, db: Session = Depends(get_db)): 
+async def test_point(olt_id:int, request: Request, db: Session = Depends(get_db), user = Depends(login_manager)): 
     print(request.client.host)
-    response = await olt_crud.test_point(db=db, olt_id=olt_id)
+    response = olt_crud.test_point(db=db, olt_id=olt_id, request=request, user=user)
     return response

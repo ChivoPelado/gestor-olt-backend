@@ -3,7 +3,7 @@
 from typing import List
 from app.device.base import factory
 from app.device.base.device_base import OltDeviceBase
-from app.device.command.protocol import IOnu, IOnuType
+from app.device.base.interface import IOnu, IOnuType
 
 
 VPORT = 1
@@ -36,9 +36,6 @@ class Zte(OltDeviceBase):
         shelf['shelf_sn'] = olt_shelf[0]['serial_no']
 
         return shelf
-    
-    def get_uncfg_onus(self) -> List[dict[str: any]]:
-        return super().excecute_and_parse(self.command['get_uncfg_onu_pon'])
 
 
     def get_cards(self) -> List[dict[str: any]]:
@@ -125,12 +122,22 @@ class Zte(OltDeviceBase):
 
         return ports
 
+    def get_uncfg_onus(self) -> List[dict[str: any]]:
+        return super().excecute_and_parse(self.command['get_uncfg_onu_pon'])
+
+
+    def get_srvcprt_and_onu_index(self, shelf: int, slot: int, port: int, vlan: int = None) -> tuple:
+        """ Metodo interno para determinar el indice ONU disponible desde una secuencia"""
         
-    def authorize_onu(self, onu: IOnu,  onu_type: IOnuType,  profile_up: str, profile_down: str) -> None:
+        olt_interface = f'gpon-olt_{shelf}/{slot}/{port}'
+        return self._get_srvcprt_and_onu_index(olt_interface)
+        
+
+    def authorize_onu(self, onu: IOnu,  onu_type: IOnuType) -> bool:
        
 
         olt_interface = f"gpon-olt_{onu.shelf}/{onu.slot}/{onu.port_no}"
-        onu_index =self._get_next_avail_index(olt_interface)
+        onu_index = onu.index #self._get_next_avail_index(olt_interface)
         onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu_index}"
 
 
@@ -144,32 +151,49 @@ class Zte(OltDeviceBase):
         commands += [self.command['set_onu_name'] % onu.name]
         commands += [self.command['set_onu_description'] % onu.comment]
         commands += [self.command['sn_bind_enable']]
-        commands += [self.command['set_tcont_profile'] % (TCONT, profile_up)]
+        commands += [self.command['set_tcont_profile'] % (TCONT, onu.upload_speed)]
         commands += [self.command['set_gemport'] % (GEMPORT, TCONT)]
-        commands += [self.command['set_downstream_limit'] % (GEMPORT, profile_down)]
+        commands += [self.command['set_downstream_limit'] % (GEMPORT, onu.download_speed)]
         commands += [self.command['set_switchport_mode_hybrid'] % VPORT]
-        commands += [self.command['set_service_port'] % (SRVC_PORT, VPORT, onu.vlan, onu.vlan)]
+        commands += [self.command['set_service_port'] % (onu.srvc_port, VPORT, onu.vlan, onu.vlan)]
         commands += [self.command['exit_mode']]
 
-        if onu.onu_mode == "Routing":
-            commands += self.set_onu_mode_routing(onu, onu_interface, onu_type)
 
-        commands += [self.command['enable_mode_forward']]
-        commands += [self.command['enable_ingress_type']]
+        try:
+            result = super().excecute(commands, expect_string='[#\?$]')
 
-        commands += [self.command['exit_mode']]
-        commands += [self.command['exit_mode']]
+            if onu.onu_mode == "Routing":
+                self.set_onu_mode_routing(onu, onu_type)
 
-        result = super().excecute(commands, expect_string='[#\?$]')
+            else:
+                self.set_onu_mode_bridging(onu, onu_type)
+        
+        except Exception as err:
+            print("Error en proceso de autorización de ONT: ", err)
+            #return False
 
-        return onu_index
+        return result
 
 
-    def set_onu_mode_routing(self, onu:IOnu, onu_interface: str, onu_type: IOnuType ) -> List[str]:
+    def set_onu_mode_routing(self, onu:IOnu, onu_type: IOnuType) -> List[str]:
+
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
 
         commands = []
 
+        commands += [self.command['enter_configutation_mode']]
         commands += [self.command['manage_pon_onu'] % onu_interface]
+
+        # Se revierten instrucciones en caso de que el cambio sea desde modo Bridging
+        for index in range(onu_type.ethernet_ports):
+            eth = f"eth_0/{index + 1}"
+            commands += [self.command['disable_loop_detect'] % eth ]
+        
+        for index in range(onu_type.ethernet_ports):
+            eth = f"eth_0/{index + 1}"
+            commands += [self.command['no_vlan_port'] % eth ]
+
+        # Nuevos Ajustes
         commands += [self.command['set_flow_mode_filter_discard'] % FLOW_MODE]
         commands += [self.command['set_flow_prority'] % (FLOW_MODE, PRIORITY, onu.vlan)]
         commands += [self.command['set_gemport_flow'] % (GEMPORT, FLOW_MODE)]
@@ -178,21 +202,128 @@ class Zte(OltDeviceBase):
         commands += [self.command['set_vlan_filter_mode'] % IPHOST]
         commands += [self.command['set_vlan_filter_priority'] % (IPHOST, PRIORITY, onu.vlan)]
 
-        print("ETH PORTs", onu_type.ethernet_ports)
 
         for index in range(onu_type.ethernet_ports):
             eth = f"eth_0/{index + 1}"
             commands += [self.command['set_dhcp_on_ports'] % eth ]
 
-        return commands
+        commands += [self.command['enable_mode_forward']]
+        commands += [self.command['enable_ingress_type']]
+
+        commands += [self.command['exit_mode']]
+        commands += [self.command['exit_mode']]
+
+        try:
+            result = super().excecute(commands, expect_string='[#\?$]')
+        except Exception as err:
+            print("Error en proceso de de cambio de modo a a Routing de ONT: ", err)
+            return False
+
+        return True
+        #return commands
+
+    def set_onu_mode_bridging(self, onu: IOnu, onu_type: IOnuType) -> List[str]:
+        
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+
+        commands += [self.command['enter_configutation_mode']]
+        commands += [self.command['manage_pon_onu'] % onu_interface]
+
+         # Se revierten instrucciones en caso de que el cambio sea desde modo routing
+        commands += [self.command['no_vlan_filter_mode'] % IPHOST]
+        commands += [self.command['no_vlan_filter_priority'] % (IPHOST, PRIORITY, onu.vlan)]
+        commands += [self.command['no_bind_switch_port_ip_host'] % IPHOST]
+
+        # Nuevos Ajustes
+        for index in range(onu_type.ethernet_ports):
+            eth = f"eth_0/{index + 1}"
+            commands += [self.command['enable_loop_detect'] % eth ]
+
+        commands += [self.command['set_flow_mode_filter_discard'] % FLOW_MODE]     
+        commands += [self.command['set_flow_prority'] % (FLOW_MODE, PRIORITY, onu.vlan)]   
+        commands += [self.command['set_gemport_flow'] % (GEMPORT, FLOW_MODE)]
+        commands += [self.command['bind_switch_port_veip'] % VEIP]
+
+        for index in range(onu_type.ethernet_ports):
+            eth = f"eth_0/{index + 1}"
+            commands += [self.command['set_vlan_port'] % (eth, onu.vlan) ]
+
+        for index in range(onu_type.ethernet_ports):
+            eth = f"eth_0/{index + 1}"
+            commands += [self.command['set_dhcp_on_ports_from_internet'] % eth ]
+
+        commands += [self.command['enable_mode_forward']]
+        commands += [self.command['enable_ingress_type']]
+
+        commands += [self.command['exit_mode']]
+        commands += [self.command['exit_mode']]
+
+        try:
+            result = super().excecute(commands, expect_string='[#\?$]')
+        except Exception as err:
+            print("Error en proceso de de cambio de modo a a Bridging de ONT: ", err)
+            return False
+
+        return True
+        #return commands
 
 
-    def set_onu_mode_bridge():
-        pass
+    def enable_catv(self, onu: IOnu) -> bool:
+           
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+
+        commands += [self.command['enter_configutation_mode']]
+        commands += [self.command['manage_pon_onu'] % onu_interface]
+        commands += [self.command['activate_catv']]
+        commands += [self.command['exit_mode']]
+        commands += [self.command['exit_mode']]
+
+        try:
+            result = super().excecute(commands, expect_string='[#\?$]')
+        except Exception as err:
+            print("Error en proceso de activación de CATV: ", err)
+            return False
+
+        return True
+
+
+    def disable_catv(self, onu: IOnu) -> bool:
+           
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+
+        commands += [self.command['enter_configutation_mode']]
+        commands += [self.command['manage_pon_onu'] % onu_interface]
+        commands += [self.command['deactivate_catv']]
+        commands += [self.command['exit_mode']]
+        commands += [self.command['exit_mode']]
+
+        try:
+            result = super().excecute(commands, expect_string='[#\?$]')
+        except Exception as err:
+            print("Error en proceso de desactivación de CATV: ", err)
+            return False
+
+        return True
+
+
+    def resync_onu(self, onu: IOnu, onu_type: IOnuType) -> bool:
+        
+        try:
+            self.delete_onu(onu)
+            self.authorize_onu(onu, onu_type)
+
+        except Exception as err:
+            print("Existió un error al resincronizar ONT ", err)
+
+        return True
+
 
     def get_port_tx(self, shelf: int, slot: int, port: int):
 
-        oid = self.MIB['zxAnOpticalPowerTxCurrValue'] + self.encode_gpon_onu_index_type_one(shelf, slot, port)
+        oid = self.MIB['zxAnOpticalPowerTxCurrValue'] + self._encode_gpon_onu_index_type_one(shelf, slot, port)
 
         result = super()._snmp_query(oid)
         level = round((int(result[oid]) / 1000), 4)
@@ -202,7 +333,7 @@ class Zte(OltDeviceBase):
 
     def get_port_status(self, shelf: int, slot: int, port: int):
 
-        oid = self.MIB['ifOperStatus'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+        oid = self.MIB['ifOperStatus'] + self._encode_gpon_olt_ifindex_type_one(shelf, slot, port)
 
         result = super()._snmp_query(oid)
         status = int(result[oid])
@@ -212,7 +343,7 @@ class Zte(OltDeviceBase):
 
     def get_port_admin_state(self, shelf: int, slot: int, port: int):
 
-        oid = self.MIB['ifAdminStatus'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+        oid = self.MIB['ifAdminStatus'] + self._encode_gpon_olt_ifindex_type_one(shelf, slot, port)
 
         result = super()._snmp_query(oid)
         status = int(result[oid])
@@ -222,33 +353,33 @@ class Zte(OltDeviceBase):
     
     def get_port_description(self, shelf: int, slot: int, port: int):
 
-        oid = self.MIB['ifDescr'] + self.encode_gpon_olt_ifindex_type_one(shelf, slot, port)
+        oid = self.MIB['ifDescr'] + self._encode_gpon_olt_ifindex_type_one(shelf, slot, port)
 
         result = super()._snmp_query(oid)
 
         return result[oid]
 
-    def get_onu_rx(self, shelf: int, slot: int, port: int, index: int):
+    def get_onu_rx(self, onu: IOnu):
 
-        oid = self.MIB['zxGponPonRxOpticalLevel'] + self.encode_gpon_onu_index(shelf, slot, port, index) + '.1'
+        oid = self.MIB['zxGponPonRxOpticalLevel'] + self._encode_gpon_onu_index(onu.shelf, onu.slot, onu.port_no, onu.index) + '.1'
 
         result = super()._snmp_query(oid)
 
         return self._onu_rx_convert(int(result[oid]))
 
 
-    def get_olt_rx(self, shelf: int, slot: int, port: int, index: int):
+    def get_olt_rx(self, onu: IOnu):
 
-        oid = self.MIB['txPower'] + self.encode_gpon_onu_index(shelf, slot, port, index)
+        oid = self.MIB['txPower'] + self._encode_gpon_onu_index(onu.shelf, onu.slot, onu.port_no, onu.index)
 
         result = super()._snmp_query(oid)
 
         return round((int(result[oid]) / 1000), 2)
 
 
-    def get_onu_state(self, shelf: int, slot: int, port: int, index: int):
+    def get_onu_state(self, onu: IOnu):
         
-        oid = self.MIB['zxGponOntPhaseState'] + self.encode_gpon_onu_index(shelf, slot, port, index)
+        oid = self.MIB['zxGponOntPhaseState'] + self._encode_gpon_onu_index(onu.shelf, onu.slot, onu.port_no, onu.index)
 
         result = super()._snmp_query(oid)
 
@@ -257,6 +388,137 @@ class Zte(OltDeviceBase):
         state = "En Línea" if result == 3 else "LOS" if result == 1 else "Fuera de Línea" if result == 6 else "Falla Eléctrica" if result == 4 else "Otro \ Desconocido" 
         return state
 
+
+    def delete_onu(self, onu: IOnu) -> bool:
+
+        olt_interface = f'gpon-olt_{onu.shelf}/{onu.slot}/{onu.port_no}'
+        commands = []
+    
+        try:
+            commands += [self.command['enter_configutation_mode']]
+            commands += [self.command['select_interface'] % olt_interface]
+            commands += [self.command['delete_onu'] % str(onu.index)]
+            commands += [self.command['exit_mode']]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+        
+        except Exception as error:
+            print(error)
+
+            return False
+
+        return True
+
+
+    def deactivate_onu(self, onu: IOnu) -> bool:
+
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+    
+        try:
+            commands += [self.command['enter_configutation_mode']]
+            commands += [self.command['select_interface'] % onu_interface]
+            commands += [self.command['deactivate_onu']]
+            commands += [self.command['exit_mode']]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+        
+        except Exception as error:
+            print(error)
+
+            return False
+
+        return True
+    
+
+    def activate_onu(self, onu: IOnu) -> bool:
+
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+    
+        try:
+            commands += [self.command['enter_configutation_mode']]
+            commands += [self.command['select_interface'] % onu_interface]
+            commands += [self.command['activate_onu']]
+            commands += [self.command['exit_mode']]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+        
+        except Exception as error:
+            print(error)
+
+            return False
+
+        return True
+    
+
+    def reboot_onu(self, onu: IOnu) -> bool:
+
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+        commands = []
+    
+        try:
+            commands += [self.command['enter_configutation_mode']]
+            commands += [self.command['manage_pon_onu'] % onu_interface]
+            commands += [self.command['reboot_onu']]
+            commands += [self.command['confirm']]
+            commands += [self.command['exit_mode']]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+        
+        except Exception as error:
+            print(error)
+
+            return False
+
+        return True
+
+    def show_onu_running_config(self, onu: IOnu):
+
+        onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
+
+        commands = []
+
+        get_if_running = self.command['get_interface_running_config'] % onu_interface
+        get_onu_running = self.command['get_onu_running_config'] % onu_interface
+       
+        try:
+            commands += [get_if_running]
+            commands += [get_onu_running]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+
+            response = f"# Interface running-config: \n {result.get(get_if_running).lstrip('Building configuration...')} \n\n\
+# ONT running-config\n\n{result.get(get_onu_running)} "
+
+        
+        except Exception as error:
+            print(error)
+
+        print(response)
+        return response
+
+
+    def show_onu_power_attn(self, onu: IOnu):
+
+        onu_interface = f'gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}'
+        commands = []
+    
+        commands += [self.command['enter_configutation_mode']]
+        commands += [self.command['get_onu_power_attn'] % onu_interface]
+
+        result = super().excecute(commands, expect_string='[#\?$]')
+        return result.get((self.command['get_onu_power_attn'] % onu_interface))
+
+
+    ############################################################
+    # Helper Methods
+    ############################################################
         
     def _onu_rx_convert(self, snmp_value):
         if snmp_value == 65535:
@@ -267,7 +529,10 @@ class Zte(OltDeviceBase):
         # return result[oid]
 
 
-    def _get_next_avail_index(self, olt_interface: str) -> int:
+
+
+
+    def _get_srvcprt_and_onu_index(self, olt_interface: str) -> tuple:
         """ Metodo interno para determinar el indice ONU disponible desde una secuencia"""
         
         # Se obtiene onus desde una interface OLT
@@ -290,9 +555,9 @@ class Zte(OltDeviceBase):
             available_index = indexes.pop() + 1
 
         # Retorna el indice
-        return available_index
+        return SRVC_PORT, available_index
 
-    def encode_gpon_onu_index(self, shelf: int, slot: int, port: int, index: int):
+    def _encode_gpon_onu_index(self, shelf: int, slot: int, port: int, index: int):
         index_type = self._dec_to_bin(1, 4)  # '0001'
         shelf = self._dec_to_bin(shelf - 1, 4)  # '0000'
         slot = self._dec_to_bin(slot, 8)
@@ -303,7 +568,7 @@ class Zte(OltDeviceBase):
         return str(int((index_type + shelf + slot + port + srv_prt_id), 2)) + "." + str(index)
 
 
-    def encode_gpon_onu_index_type_one(self, shelf: int, slot: int, port: int):
+    def _encode_gpon_onu_index_type_one(self, shelf: int, slot: int, port: int):
         # Slot conversion for ZTE C300 Shelf
         in_slot = slot
         composite_index_slot = 0
@@ -321,7 +586,7 @@ class Zte(OltDeviceBase):
         return str(int((index_type + shelf + slot + port + srv_prt_id), 2))
     
 
-    def encode_gpon_olt_ifindex_type_one(self, shelf: int, slot: int, port: int):
+    def _encode_gpon_olt_ifindex_type_one(self, shelf: int, slot: int, port: int):
 
         index_type = self._dec_to_bin(1, 4)  # '0001'
         rack = self._dec_to_bin(1, 4)  # 'RACK -> 1'

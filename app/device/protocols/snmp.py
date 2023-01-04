@@ -2,9 +2,9 @@ from pysnmp import hlapi
 from celery import shared_task
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5},
-             name='olt:get_request')
-def get_request(self, target, oids, credential, port):
+#@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 5},
+#             name='olt:get_request')
+def get_request(target, oids, credential, port):
     return get(target, oids, hlapi.CommunityData(credential), port)
 
 

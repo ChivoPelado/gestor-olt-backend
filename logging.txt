@@ -13,8 +13,8 @@ Warning: Telnet is not a secure protocol, and it is recommended to use Stelnet.
   -----------------------------------------------------------------------------
   Access Type : Telnet
   IP-Address  : 177.234.224.136
-  Login  Time : 2022-12-26 21:41:01-06:00
-  Logout Time : 2022-12-26 21:41:07-06:00
+  Login  Time : 2023-01-03 19:08:01-06:00
+  Logout Time : 2023-01-03 19:08:06-06:00
   -----------------------------------------------------------------------------
 
 MA5800-X15>
@@ -34,25 +34,27 @@ MA5800-X15#
 
 MA5800-X15#
 
-MA5800-X15#
+MA5800-X15#display current-configuration ont 0/3/7 1 
+[MA5800V100R018: 7000]
+#
+[gpon]
+  <gpon-0/3>
+ interface gpon 0/3
+ ont add 7 1 sn-auth "44433534B354FE68" omci ont-lineprofile-id 2 
+ont-srvprofile-id 46 desc "123-PRUEBA_descr_ont_de_prueba" 
+ ont port route 7 1 eth 1 enable
+ ont port route 7 1 eth 2 enable
+#
+[bbs-config]
+  <bbs-config>
+ service-port 1015 vlan 100 gpon 0/3/7 ont 1 gemport 1 multi-service user-vlan 
+100 tag-transform translate inbound traffic-table index 39 outbound 
+traffic-table index 23
+#
+return
 
-MA5800-X15#display vlan all 
-  -----------------------------------------------------------------------
-  VLAN   Type      Attribute  STND-Port NUM   SERV-Port NUM  VLAN-Con NUM
-  -----------------------------------------------------------------------
-     1   smart     common                 8               0             -
-   100   smart     common                 3            3749             -
-   200   smart     common                 0               0             -
-   300   smart     common                 0               0             -
-   400   smart     common                 0               0             -
-   500   smart     common                 0              45             -
-   600   smart     common                 0               5             -
-   700   smart     common                 1               0             -
-  -----------------------------------------------------------------------
-  Total: 8
-  Note : STND-Port--standard port, SERV-Port--service virtual port,
-         VLAN-Con--vlan-connect
-
-MA5800-X15#
+MA5800-X15#quit 
+  Check whether system data has been changed. Please save data before logout. 
+Are you sure to log out? (y/n)[n]:
 
 MA5800-X15#exit

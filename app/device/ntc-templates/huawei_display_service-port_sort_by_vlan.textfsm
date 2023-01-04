@@ -1,0 +1,9 @@
+Value SRV_PRT (\d+)
+Value VLAN_ID (\d+)
+Value SHELF (\d+)
+Value SLOT (\d+)
+Value PORT (\d+)
+Value ONU_INDEX (\d+)
+
+Start
+  ^\s+${SRV_PRT}\s+${VLAN_ID}\s+\S+\s+gpon ${SHELF}/${SLOT} /${PORT}\s+${ONU_INDEX} -> Record

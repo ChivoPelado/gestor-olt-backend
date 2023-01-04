@@ -4,6 +4,7 @@ from celery import shared_task
 from typing import List
 from ntc_templates.parse import parse_output
 from app.device.protocols import telnet, snmp
+from app.device.base.interface import IOlt, IOnu, IOnuType
 from abc import ABC, abstractmethod
 import os
 
@@ -79,21 +80,34 @@ class OltDeviceBase(ABC):
         ...
 
     @abstractmethod
-    def get_ports(self) -> List[dict[str: any]]:
-        """ Devuelve los puertos correspondientes a las tarjetas de OLT"""
-        ...
-
-    def get_onu_types(self) -> List[dict[str: any]]:
-        """ Devuelve las los tipos de ONU registrados en OLT"""
-        
-        return  self._excecute_and_parse(self.command['get_onu_types'])
-
-
-    @abstractmethod
     def get_vlans(self) -> List[dict[str: any]]:
         """ Devuelve las VLANs configuradas en OLT"""
         ...
 
+    @abstractmethod
+    def get_ports(self) -> List[dict[str: any]]:
+        """ Devuelve los puertos correspondientes a las tarjetas de OLT"""
+        ...
+
+    @abstractmethod
+    def get_uncfg_onus(self) -> List[dict[str: any]]:
+        """ Devuelve las ONT sin configuración / autorización"""
+        ...
+
+    @abstractmethod
+    def get_srvcprt_and_onu_index(self, shelf: int, slot: int, port: int, vlan: int = None) -> tuple:
+        """ Metodo interno para determinar el indice ONU disponible desde una secuencia"""
+        ...
+
+    @abstractmethod 
+    def authorize_onu(self, onu: IOnu,  onu_type: IOnuType,  profile_up: str, profile_down: str) -> bool: 
+        ...
+
+    @abstractmethod
+    def delete_onu(self, onu: IOnu) -> bool:
+        """ Elimina ONT de la OLT"""
+        ...
+        
     ############################################################
     # Implementacines base para la interacción con dispositivos
     ############################################################
@@ -135,7 +149,7 @@ class OltDeviceBase(ABC):
     def _snmp_query(self, oid: str) -> any:
         """ Ejecuta las consultas SNMP desde la OID entregada"""
 
-        task = snmp.get_request.apply_async(args=[
+        """ task = snmp.get_request.apply_async(args=[
             self._connection_pars.get('host'), 
             [oid], 
             self._connection_pars.get('snmp_write_com'),
@@ -143,4 +157,13 @@ class OltDeviceBase(ABC):
             ], queue='olt'
         )
         result = task.get(disable_sync_subtasks=False)
-        return result
+        return result """
+
+        task = snmp.get_request(
+            self._connection_pars.get('host'), 
+            [oid], 
+            self._connection_pars.get('snmp_write_com'),
+            self._connection_pars.get('snmp_port')
+            )
+        #result = task.get(disable_sync_subtasks=False)
+        return task
