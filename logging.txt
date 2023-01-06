@@ -1,60 +1,72 @@
+************************************************
+Welcome to ZXAN product C300 of ZTE Corporation
+************************************************
 
-Warning: Telnet is not a secure protocol, and it is recommended to use Stelnet.
+Last login time is 01.06.2023-16:16:13-utc, 0 authentication failures happened s
+ince that time.
+Username:aherrera
+Password:
+ZXAN#
+ZXAN#
+ZXAN#terminal length 0
+ZXAN#
+ZXAN#show running-config%Info 20272: Enter configuration commands, one per line. End with CTRL/Z.
+ZXAN(co  name 1084-22027-ZAMBRANO_ACOSTA_MARIA_PAOLA
+  de           OLT                  ONU              Attenuation
+--------------------------------------------------------------------------
+ up      Rx :-25.058(dbm)      Tx:2.280(dbm)        27.338(dB)     
+ 
+ down    Tx :6.414(dbm)        Rx:-23.280(dbm)      29.694(dB)     
+ZXAN(config)#show mac gpon onu gpon-onu_1/2/1:3
+Total mac address : 1
 
->>User name:admincf
->>User password:
+Mac address      Vlan  Type      Port	                  Vc                                 
+-------------------------------------------------------------------------------
+d832.1424.fe30   500   Dynamic   gpon-onu_1/2/1:3         vport 1  
+ZXAN(config)#show gpon onu detail-info gpon-onu_1/2/1:3
+
+ONU interface:         gpon-onu_1/2/1:3
+  Name:                1084-22027-ZAMBRANO_ACOSTA_MARIA_PAOLA
+  Type:                HUAWEI-ECHOLIFE-HG8310M
+  State:               ready
+  Configured channel:  auto
+  Current channel:     1(GPON)
+  Admin state:         enable
+  Phase state:         working
+  Config state:        fail
+  Authentication mode: sn
+  SN Bind:             enable with SN check
+  Serial number:       HWTC7701EA2E
+  Password:            
+  Description:         zone_Leonidas_Proano_descr_SERVICIO_DE_INTERNET_PLAN_FAMILIA_INTERNET_/20_MEGAS_GPON/_Contrato_-_226418_odb_LP_-_13_-_x16_lat_
+  Vport mode:          gemport
+  DBA Mode:            Hybrid
+  ONU Status:          enable
+  OMCI BW Profile:     
+  Line Profile:        N/A
+  Service Profile:     N/A
+  ONU Distance:        3078m
+  Online Duration:     47h 21m 27s
+  FEC:                 none
+  FEC actual mode:     N/A
+  1PPS+ToD:            disable
+  Auto replace:        disable 
+  Multicast encryption:disable
+  Multicast encryption current state:N/A
+------------------------------------------
+       Authpass Time          OfflineTime             Cause
+   1   2022-12-22 18:36:32    2022-12-22 23:39:57     DyingGasp 
+   2   2022-12-22 23:41:06    2022-12-23 12:21:06     DyingGasp 
+   3   2022-12-23 13:05:14    2022-12-23 13:05:14     LOSi     
+   4   2022-12-23 13:05:50    2022-12-23 13:46:03     DyingGasp 
+   5   2022-12-23 14:53:12    2022-12-30 03:25:57     DyingGasp 
+   6   2022-12-30 03:29:17    2022-12-30 03:29:18     LOSi     
+   7   2022-12-30 03:30:53    2022-12-30 04:56:06     DyingGasp 
+   8   2022-12-30 04:57:37    2023-01-04 16:59:08     LOSi     
+   9   2023-01-04 17:00:16    2023-01-04 17:00:16     LOSi     
+  10   2023-01-04 17:01:37    0000-00-00 00:00:00              
 
 
-  Huawei Integrated Access Software (MA5800).
-  Copyright(C) Huawei Technologies Co., Ltd. 2002-2018. All rights reserved.
-
-  -----------------------------------------------------------------------------
-  User last login information:
-  -----------------------------------------------------------------------------
-  Access Type : Telnet
-  IP-Address  : 177.234.224.136
-  Login  Time : 2023-01-03 19:08:01-06:00
-  Logout Time : 2023-01-03 19:08:06-06:00
-  -----------------------------------------------------------------------------
-
-MA5800-X15>
-
-MA5800-X15>
-
-MA5800-X15>undo smart 
-  Interactive function is disabled
-
-MA5800-X15>scroll 
-
-MA5800-X15>
-
-MA5800-X15>enable 
-
-MA5800-X15#
-
-MA5800-X15#
-
-MA5800-X15#display current-configuration ont 0/3/7 1 
-[MA5800V100R018: 7000]
-#
-[gpon]
-  <gpon-0/3>
- interface gpon 0/3
- ont add 7 1 sn-auth "44433534B354FE68" omci ont-lineprofile-id 2 
-ont-srvprofile-id 46 desc "123-PRUEBA_descr_ont_de_prueba" 
- ont port route 7 1 eth 1 enable
- ont port route 7 1 eth 2 enable
-#
-[bbs-config]
-  <bbs-config>
- service-port 1015 vlan 100 gpon 0/3/7 ont 1 gemport 1 multi-service user-vlan 
-100 tag-transform translate inbound traffic-table index 39 outbound 
-traffic-table index 23
-#
-return
-
-MA5800-X15#quit 
-  Check whether system data has been changed. Please save data before logout. 
-Are you sure to log out? (y/n)[n]:
-
-MA5800-X15#exit
+ZXAN(config)#exit
+ZXAN#
+ZXAN#exit

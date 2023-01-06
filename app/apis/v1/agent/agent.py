@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.schemas.agent import AgentCreate, AgentResponse, PaginatedAgentListInfo
 from app.core.schemas.generic import IResponseBase
 from app.database import get_db
+from typing import List
 from . import crud
 # from . import exceptions
 
@@ -45,13 +46,12 @@ async def read_agent(agent_id: int, db_session: Session = Depends(get_db)):
     return IResponseBase[AgentResponse](response=db_agent)
 
 
-@router.get("/get_agents/", response_model=IResponseBase[PaginatedAgentListInfo])
-async def list_agents(skip: int = 0, limit: int = 100, db_session: Session = Depends(get_db)):
+@router.get("/get_agents/", response_model=IResponseBase[List[AgentResponse]])
+async def list_agents(db_session: Session = Depends(get_db)):
     """API para la lectura de  todos los agentes"""
 
-    db_agents = crud.get_agents(db_session, skip=skip, limit=limit)
-    response = {"skip": skip, "limit": limit, "data": db_agents}
-    return IResponseBase[PaginatedAgentListInfo](response=response)
+    db_agents = crud.get_agents(db_session)
+    return IResponseBase[list[AgentResponse]](response=db_agents)
 
 
 @router.put("/{agent_id}", response_model=IResponseBase[AgentResponse])

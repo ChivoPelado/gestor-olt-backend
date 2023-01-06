@@ -1,4 +1,5 @@
-"""Factory for creating a game character."""
+"""Factory Para la creación de dispositivos controladores de OLT"""
+
 from typing import Any, Callable
 from app.device.base.device_base import OltDeviceBase
 
@@ -6,17 +7,17 @@ device_creation_funcs: dict[str, Callable[..., OltDeviceBase]] = {}
 
 
 def register(device_type: str, creator_fn: Callable[..., OltDeviceBase]) -> None:
-    """Register a new game character type."""
+    """Registra un nuevo dispositivo OLT."""
     device_creation_funcs[device_type] = creator_fn
 
 
 def unregister(device_type: str) -> None:
-    """Unregister a game character type."""
+    """Deregistra un dispositivo OLT"""
     device_creation_funcs.pop(device_type, None)
 
 
 def create(arguments: dict[str, Any]) -> OltDeviceBase:
-    """Create a game character of a specific type, given JSON data."""
+    """Crea un control de dispositivo OLT en base a un JSON entregado."""
     args_copy = arguments.copy()
     device_type = args_copy.pop("type")
     try:

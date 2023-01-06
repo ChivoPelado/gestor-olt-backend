@@ -4,12 +4,7 @@ from netmiko import (
     NetmikoAuthenticationException,
 )
 from celery import shared_task
-from ntc_templates.parse import parse_output
-from typing import Final
-import os
 
-
-#os.environ["NTC_TEMPLATES_DIR"] = "templates"
 
 CONN_TIMEOUT = 10
 GLOBAL_DELAY_FACTOR = 3

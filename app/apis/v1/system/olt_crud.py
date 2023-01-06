@@ -98,23 +98,28 @@ async def create_olt(name: str, ip_address: str, telnet_port: int, telnet_user: 
     db_session.add(db_olt)
     db_session.commit()
     
-    # Obtener Shelf/Frame
-    await get_olt_shelf_from(olt=db_olt, db_session=db_session)
+    try:
+        # Obtener Shelf/Frame
+        await get_olt_shelf_from(olt=db_olt, db_session=db_session)
 
-    # Obtener tarjetas
-    await get_olt_cards_from(olt=db_olt, db_session=db_session)
+        # Obtener tarjetas
+        await get_olt_cards_from(olt=db_olt, db_session=db_session)
 
-    # Obtener puertos
-    await get_card_ports_from(olt=db_olt, db_session=db_session)
+        # Obtener puertos
+        await get_card_ports_from(olt=db_olt, db_session=db_session)
 
-    # Obtener VLANs
-    await get_vlans_from(olt=db_olt, db_session=db_session)
+        # Obtener VLANs
+        await get_vlans_from(olt=db_olt, db_session=db_session)
 
-    # Actualiza detalles de Olt e inicia termporizador
-    # await update_olt_values()
-    await start_recurrent_task()
-    #task = update_olt_values.apply_async(queue='recurrent')
-    #result = task.get(disable_sync_subtasks=False)
+        # Actualiza detalles de Olt e inicia termporizador
+        # await update_olt_values()
+        await start_recurrent_task()
+        #task = update_olt_values.apply_async(queue='recurrent')
+        #result = task.get(disable_sync_subtasks=False)
+        db_session.commit()
+        
+    except ConnectionRefusedError:
+        raise ConnectionRefusedError
 
     return db_olt
 

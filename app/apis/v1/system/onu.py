@@ -10,6 +10,7 @@ from app.core.schemas.system import OnuResponse, OnuCreate, UncfgOnuResponse, On
 from app.core.models.system import Onu, Olt, Port, Card, OnuType, OnuType, SpeedProfileDown, SpeedProfileUp
 from app.core.utils.security import login_manager
 from app.core.schemas.generic import IResponseBase
+from app.core.models.location import Region, Zone, Nap
 import time
 
 
@@ -63,13 +64,16 @@ async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)):
          raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ONU con id {external_id} no existe")
 
     response = {}
-    db_onu, olt_name, onu_type, speed_up_name, speed_down_name = db.query(
-        Onu, Olt.name, OnuType, SpeedProfileUp.name, SpeedProfileDown.name) \
+    db_onu, olt_name, onu_type, speed_up_name, speed_down_name, region_name, zone_name, nap_name= db.query(
+        Onu, Olt.name, OnuType, SpeedProfileUp.name, SpeedProfileDown.name, Region.name, Zone.name, Nap.name ) \
         .join(Olt) \
         .join(OnuType) \
         .join(Port) \
         .join(SpeedProfileUp) \
         .join(SpeedProfileDown) \
+        .join(Region) \
+        .join(Zone) \
+        .join(Nap) \
         .filter(Onu.ext_id == external_id).first()
     
     if not db_onu:
@@ -82,6 +86,9 @@ async def get_onu_by_ext_id(external_id: int, db: Session = Depends(get_db)):
     response['download_speed'] = speed_down_name.lstrip("SMARTOLT-").rstrip("-DOWN")
     response['interface'] = db_onu.interface
     response['onu_type'] = onu_type
+    response['region_name'] = region_name
+    response['zone_name'] = zone_name
+    response['nap_name'] = nap_name
 
     
     """     for onu, olt_name, onu_type_name, speed_profile_name, port_desc in db_onu:
@@ -106,14 +113,17 @@ def get_onu_signals(ext_id: int,  db_session: Session = Depends(get_db)) -> dict
 def get_all_onus( db_session: Session = Depends(get_db)) -> dict:
   
     db_onus = db_session.query(
-        Onu, Olt.name, SpeedProfileDown.name, SpeedProfileUp.name, OnuType.name
-        ) \
+        Onu, Olt.name, SpeedProfileDown.name, SpeedProfileUp.name, OnuType,
+        Region.name, Zone.name, Nap.name) \
         .join(Olt) \
         .where(
             Onu.olt_id == Olt.id, 
             Onu.speed_profile_down_id == SpeedProfileDown.id,
             Onu.speed_profile_up_id == SpeedProfileUp.id,
-            Onu.onu_type_id == OnuType.id
+            Onu.onu_type_id == OnuType.id,
+            Onu.region_id == Region.id,
+            Onu.zone_id == Zone.id,
+            Onu.nap_id == Nap.id
             ).all()
 
     response = []
@@ -123,8 +133,12 @@ def get_all_onus( db_session: Session = Depends(get_db)) -> dict:
         onu['olt_name'] = query[1]
         onu['download_speed'] = query[2].lstrip("SMARTOLT-").rstrip("-DOWN")
         onu['upload_speed'] = query[3].lstrip("SMARTOLT-").rstrip("-UP")
-        onu['onu_type_name'] = query[4]
+        onu['onu_type_name'] = query[4].name
         onu['interface'] = query[0].interface
+        onu['onu_type'] = query[4]
+        onu['region_name'] = query[5]
+        onu['zone_name'] = query[6]
+        onu['nap_name'] = query[7]
 
         response.append(onu)
 
@@ -241,9 +255,9 @@ def resync_config_onu_by_ext_id(ext_id: int,  req: Request, db_session: Session 
 
 
 @router.get("/running_config/{ext_id}")
-def resync_config_onu_by_ext_id(ext_id: int,  req: Request, db_session: Session = Depends(get_db), user = Depends(login_manager)) -> dict:
+def running_config_onu_by_ext_id(ext_id: int,  req: Request, db_session: Session = Depends(get_db), user = Depends(login_manager)) -> str:
     """
-    Resincroniza la configuración de la ONT desde la base de datos
+    Muestra información de la configuración de la ONT
     """
     response = onu_crud.get_onu_running_config(db_session=db_session, onu_ext_id=ext_id, user_id=user.id, user_ip=req.client.host)
 
@@ -251,3 +265,23 @@ def resync_config_onu_by_ext_id(ext_id: int,  req: Request, db_session: Session 
         return response
 
     return None
+
+@router.get("/general_status/{ext_id}")
+def rgeneral_status_onu_by_ext_id(ext_id: int,  req: Request, db_session: Session = Depends(get_db), user = Depends(login_manager)) -> str:
+    """
+    Muestra información general de la ONT 
+    """
+    response = onu_crud.get_onu_general_status(db_session=db_session, onu_ext_id=ext_id, user_id=user.id, user_ip=req.client.host)
+
+    if response:
+        return response
+
+    return None
+
+
+@router.post("/bulk_onu",)
+async def add_naps(onus: List[dict], db: Session = Depends(get_db)): 
+    db_naps = onu_crud.create_onus(onus=onus, db=db)
+    if db_naps:
+        return IResponseBase[str](response='NAPs agregadss satisfactoriamente' )
+    return IResponseBase[str](response='Existió un error al agregar NAPs' )

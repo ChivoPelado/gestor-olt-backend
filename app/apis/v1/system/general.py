@@ -61,3 +61,8 @@ async def add_speed_profiles(speed_profile: List[SpeedProfileCreate], db: Sessio
     if db_onu_types:
         return IResponseBase[str](response='Perfiles de velocidad de subida agregados correctamente' )
     return IResponseBase[str](response='Existió un error al agregar perfil de velocidad' )
+
+
+@router.get("/statistics")
+async def get_statistics(db: Session = Depends(get_db)):
+    return general_crud.get_total_catv_onus(db)

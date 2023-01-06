@@ -372,3 +372,19 @@ class GetONURunningConfig(ICommand):
 
     def description(self):
         return self._command_str
+
+
+@dataclass
+class GetONUGeneralStatus(ICommand):
+    onu: IOnu
+
+    loggable = False
+    _command_str = "Información general de ONT"
+
+    def execute(self, olt_vendor: OltDeviceBase):
+        value =  olt_vendor.show_onu_general_status(self.onu)
+        print(value)
+        return value
+
+    def description(self):
+        return self._command_str

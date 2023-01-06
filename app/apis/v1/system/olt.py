@@ -35,7 +35,7 @@ async def create_olt(name: str = Form(), ip_address: str = Form(), telnet_port: 
     - **software_ver**: Versión de software de la OLT
     \f
     :param db: DataBase Session.
-    """
+    """   
 
     if not olt_crud.vlidate_used_ports(db_session=db_session, olt_ip=ip_address, telnet_port=telnet_port, snmp_port=snmp_port):
         raise HTTPException(
@@ -43,16 +43,18 @@ async def create_olt(name: str = Form(), ip_address: str = Form(), telnet_port: 
             detail="IP y puertos ingresados estan siendo utilizados por otra OLT"
             ) 
 
-    new_olt = await olt_crud.create_olt(
-        name = name, ip_address = ip_address, telnet_port = telnet_port, telnet_user = telnet_user, 
-        telnet_password = telnet_password, snmp_port =snmp_port, snmp_read_com = snmp_read_com, 
-        snmp_write_com = snmp_write_com, hardware_ver = hardware_ver, software_ver = software_ver,
-        db_session=db_session
-        )
-
-    """ new_olt = True
-    print(hardware_ver, software_ver)
-    time.sleep(10) """
+    try: 
+        new_olt = await olt_crud.create_olt(
+            name = name, ip_address = ip_address, telnet_port = telnet_port, telnet_user = telnet_user, 
+            telnet_password = telnet_password, snmp_port =snmp_port, snmp_read_com = snmp_read_com, 
+            snmp_write_com = snmp_write_com, hardware_ver = hardware_ver, software_ver = software_ver,
+            db_session=db_session
+            )
+    except ConnectionRefusedError:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT, 
+            detail="Error en la conexión con OLT. Revise los datos de conexión e intente denuevo"
+            ) 
 
     return IResponseBase[OltResponse](response=new_olt)
 

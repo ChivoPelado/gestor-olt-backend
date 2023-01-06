@@ -4,6 +4,7 @@ from sqlalchemy import and_
 from typing import List
 import time
 from app.core.models.system import Olt, Onu, Shelf, Port, Card, OnuType, SpeedProfileUp, SpeedProfileDown
+from app.core.models.location import Region, Zone, Nap
 from app.core.models.log import ActionLog
 from app.device.command.controller import OltController
 from app.device.command.commands import (
@@ -22,7 +23,8 @@ from app.device.command.commands import (
     EnableONUCatv,
     DisableONUCatv,
     ResyncONU,
-    GetONURunningConfig
+    GetONURunningConfig,
+    GetONUGeneralStatus
 )
 
 
@@ -86,7 +88,7 @@ def authorize_onu(olt_id: int, slot: int, port: int, onu_sn: str, onu_type: str,
     if result:
 
         new_log = ActionLog(
-        olt_id=log[1], action=log[0], onu=new_onu.interface, agent_id=user_id, ip_address=user_ip)
+        olt_id=log[1], action=log[0], onu_ext_id=new_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
         db_session.add(new_onu)
         db_session.add(new_log)
@@ -133,7 +135,7 @@ def delete_onu_by_ext_id(db_session: Session, onu_ext_id: int, user_id: int, use
                 db_session.delete(db_onu)
 
             new_log = ActionLog(
-                olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+                olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
             db_session.add(new_log)
             db_session.commit()
@@ -163,7 +165,7 @@ def deactivate_onu_by_ext_id(db_session: Session, onu_ext_id: int, user_id: int,
                 db_onu.admin_status = "Disabled"
 
             new_log = ActionLog(
-                olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+                olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
             db_session.add(new_log)
             db_session.commit()
@@ -193,7 +195,7 @@ def activate_onu_by_ext_id(db_session: Session, onu_ext_id: int, user_id: int, u
                 db_onu.admin_status = "Enabled"
 
             new_log = ActionLog(
-                olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+                olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
             db_session.add(new_log)
             db_session.commit()
@@ -220,7 +222,7 @@ def reboot_onu_by_ext_id(db_session: Session, onu_ext_id: int, user_id: int, use
             response, log = controller.get(RebooteOnu(db_onu), db_olt)
 
             new_log = ActionLog(
-                olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+                olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
             db_session.add(new_log)
             db_session.commit()
@@ -254,7 +256,7 @@ def set_onu_mode(db_session: Session, onu_ext_id: int, mode: str, user_id: int, 
         db_onu.onu_mode = mode
 
         new_log = ActionLog(
-            olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+            olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
         db_session.add(new_log)
         db_session.commit()
@@ -284,7 +286,7 @@ def enable_onu_catv(db_session: Session, onu_ext_id: int, user_id: int, user_ip:
             db_onu.catv = "Enabled"
 
         new_log = ActionLog(
-            olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+            olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
         db_session.add(new_log)
         db_session.commit()
@@ -314,7 +316,7 @@ def disable_onu_catv(db_session: Session, onu_ext_id: int, user_id: int, user_ip
             db_onu.catv = "Disabled"
 
         new_log = ActionLog(
-            olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+            olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
         db_session.add(new_log)
         db_session.commit()
@@ -339,7 +341,7 @@ def resync_onu(db_session: Session, onu_ext_id: int, user_id: int, user_ip: str)
         response, log = controller.get(ResyncONU(db_onu, db_onu_type), db_olt)
 
         new_log = ActionLog(
-            olt_id=log[1], action=log[0], onu=db_onu.interface, agent_id=user_id, ip_address=user_ip)
+            olt_id=log[1], action=log[0], onu_ext_id=db_onu.ext_id, agent_id=user_id, ip_address=user_ip)
 
         db_session.add(new_log)
         db_session.commit()
@@ -371,3 +373,86 @@ def get_onu_running_config(db_session: Session, onu_ext_id: int, user_id: int, u
         print("Error al ejecutar commando ", err)
 
     return None
+
+def get_onu_general_status(db_session: Session, onu_ext_id: int, user_id: int, user_ip: str):
+
+    db_onu: Onu
+    db_olt: Olt
+
+    db_onu, db_olt = db_session.query(Onu, Olt) \
+    .join(Olt) \
+    .filter(Onu.ext_id == onu_ext_id).first()
+
+    try:
+
+        response = controller.get(GetONUGeneralStatus(db_onu), db_olt)
+
+        return response
+
+    except Exception as err:
+        print("Error al ejecutar commando ", err)
+
+    return None
+
+def create_onus(onus: List[Onu], db: Session):
+    
+
+    db_onus = []
+    for onu in onus:
+     
+        db_onu_id = db.query(OnuType.id).filter(OnuType.name == onu['onu_type_name']).first()
+        port_id, card_id = db.query(Port.id, Card.id).join(Card, Olt) \
+            .filter(
+                Card.slot == onu['slot'],
+                Olt.id == onu['olt_id'], 
+                Port.port == onu['port_no']
+             ).first()
+
+        zone_id, region_id = db.query(Zone.id, Zone.region_id).filter(Zone.name == onu['zone_name']).first()
+        nap_id = db.query(Nap.id).filter(Nap.name == onu['nap_name']).first()
+        speed_up_id = db.query(SpeedProfileUp.id).filter(SpeedProfileUp.name == onu['upload_speed']).first()
+        speed_down_id = db.query(SpeedProfileDown.id).filter(SpeedProfileDown.name == onu['download_speed']).first()
+
+        
+        new_onu = Onu(
+            olt_id = onu['olt_id'],
+            port_id = port_id,
+            onu_type_id = db_onu_id[0],
+            speed_profile_up_id = speed_up_id[0],
+            speed_profile_down_id = speed_down_id[0],
+            region_id = region_id,
+            zone_id = zone_id,
+            nap_id = nap_id[0],
+            ext_id = onu['ext_id'],
+            pon_type = onu['pon_type'],
+            shelf = onu['shelf'],
+            slot = onu['slot'],
+            port_no = onu['port_no'],
+            index = onu['index'],
+            srvc_port = onu['srvc_port'],
+            serial_no = onu['serial_no'],
+            vlan = onu['vlan'],
+            upload_speed = onu['upload_speed'],
+            download_speed = onu['download_speed'],
+            name = onu['name'],
+            comment = onu['comment'],
+            catv = onu['catv'],
+            admin_status = onu['admin_status'],
+            status = "En Línea" if onu['status'] == "Online" else "Fuera de Línea" if onu['status'] == 'Offline' else "Falla Eléctrica" if onu['status'] == "Power fail" else onu['status'],
+            signal = onu['signal'],
+            signal_1310 = str(float(onu['signal_1310'])/1000),
+            onu_mode = onu['onu_mode'],
+
+        )
+
+        db_onus.append(new_onu)
+    
+    try:
+        db.bulk_save_objects(db_onus)
+        db.commit()
+        return True
+
+    except Exception as err:
+        print(err)
+        return False
+            

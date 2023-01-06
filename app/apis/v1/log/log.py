@@ -13,10 +13,10 @@ router = APIRouter()
 
 
 @router.get("/action/", response_model=IResponseBase[list[ActionLogResponse]])
-async def action_log(olt_id: int = None, agent_id: int = None, db_session: Session = Depends(get_db)):
+async def action_log(ext_id: int = None, db_session: Session = Depends(get_db)):
     """API para la lectura de agente a partir del ID"""
 
-    result = crud.get_action_log(db_session, olt_id, agent_id)
+    result = crud.get_action_log(db_session, ext_id)
 
     return IResponseBase[list[ActionLogResponse]](response=list(result))
 

@@ -1,22 +1,22 @@
-"""A simple plugin loader."""
+"""Plugin loader simple"""
 import importlib
 
 
 class ModuleInterface:
-    """Represents a plugin interface. A plugin has a single register function."""
+    """Representa un Plugin Interface."""
 
     @staticmethod
     def register() -> None:
-        """Register the necessary items in the game character factory."""
+        """Registra los items necesarios en la fabrica (factory) de dispositivos."""
 
 
 def import_module(name: str) -> ModuleInterface:
-    """Imports a module given a name."""
+    """Imports un modulo bajo un nombre dado."""
     return importlib.import_module(name)  # type: ignore
 
 
 def load_plugins(plugins: list[str]) -> None:
-    """Loads the plugins defined in the plugins list."""
+    """Carga el plugin en base a la lista de plugins."""
     for plugin_file in plugins:
         plugin = import_module(plugin_file)
         plugin.register()

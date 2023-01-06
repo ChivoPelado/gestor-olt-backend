@@ -68,11 +68,6 @@ class OltDeviceBase(ABC):
     def get_shelf(self) -> dict[str: any]:
         """ Devuelve shelf o frame de OLT"""
         ...
-
-    @abstractmethod
-    def get_uncfg_onus(self) -> List[dict[str: any]]:
-        """ Devuelve las ONUs no authorizadas"""
-        ...
     
     @abstractmethod
     def get_cards(self) -> List[dict[str: any]]:
@@ -101,13 +96,99 @@ class OltDeviceBase(ABC):
 
     @abstractmethod 
     def authorize_onu(self, onu: IOnu,  onu_type: IOnuType,  profile_up: str, profile_down: str) -> bool: 
+        """ Gestión de autorizacion de ONTs"""
+        ...
+
+    @abstractmethod
+    def set_onu_mode_routing(self, onu:IOnu, onu_type: IOnuType) -> List[str]:
+        """ Define el modo de ONT a tipo Routing"""
+        ...
+
+    @abstractmethod
+    def set_onu_mode_bridging(self, onu: IOnu, onu_type: IOnuType) -> List[str]:
+        """ Define el modo de ONT a tipo Bridging"""
+        ...
+    
+    @abstractmethod
+    def enable_catv(self, onu: IOnu) -> bool:
+        """ Habilita el puerto CATV de la ONT"""
+        ...
+
+    @abstractmethod
+    def disable_catv(self, onu: IOnu) -> bool:
+        """ Deshabilita el puerto CATV de la ONT"""
+        ...
+
+    @abstractmethod
+    def resync_onu(self, onu: IOnu, onu_type: IOnuType) -> bool:
+        """ Resincroniza ONT con la desde una fuente de datos con OLT"""
+        ...
+
+    @abstractmethod
+    def get_port_tx(self, shelf: int, slot: int, port: int) -> int:
+        """ Devuelve la potencia o´tica de un puerto PON"""
+        ...
+    
+    @abstractmethod
+    def get_port_status(self, shelf: int, slot: int, port: int) -> str:
+        """ Devuelve el estado de un puerto PON"""
+        ...
+
+    @abstractmethod
+    def get_port_admin_state(self, shelf: int, slot: int, port: int) -> str:
+        """ Devuelve el estado administrativo de un puerto """
+        ...
+
+    @abstractmethod
+    def get_port_description(self, shelf: int, slot: int, port: int) -> str:
+        """ Devuelve la descripción de un puerto PON"""
+        ...
+
+    @abstractmethod
+    def get_onu_rx(self, onu: IOnu) -> int:
+        """ Retorna la potencia óptica de la onu"""
+        ...
+
+    @abstractmethod
+    def get_olt_rx(self, onu: IOnu) -> int:
+        """ Retorna la potencia óptica de la OLT recibida de la OLT"""
+        ...
+
+    @abstractmethod
+    def get_onu_state(self, onu: IOnu) -> str:
+        """ Devuelve el estado de la onu """
+        ...
+
+    @abstractmethod
+    def deactivate_onu(self, onu: IOnu) -> bool:
+        """ Desactiva administrativamente una ONT"""
+        ...
+
+    @abstractmethod
+    def activate_onu(self, onu: IOnu) -> bool:
+        """ Activa administrativamente una ONT"""
+        ...  
+
+    @abstractmethod
+    def reboot_onu(self, onu: IOnu) -> bool:
+        """ Reinicia la ONT """
         ...
 
     @abstractmethod
     def delete_onu(self, onu: IOnu) -> bool:
         """ Elimina ONT de la OLT"""
         ...
-        
+
+    @abstractmethod
+    def show_onu_running_config(self, onu: IOnu) -> str:
+        """ devuelve la configuración de la ont"""
+        ...
+
+    @abstractmethod
+    def show_onu_general_status(self, onu: IOnu) -> str:
+        """ Muesta un resumen de datos de ont extraidos del shell de la OLT"""
+        ...
+
     ############################################################
     # Implementacines base para la interacción con dispositivos
     ############################################################
@@ -123,6 +204,7 @@ class OltDeviceBase(ABC):
 
     def excecute_and_parse(self, command: str, expected_string=None) -> List[dict[str: any]]:
         """ Punto de ejecución de comandos desde los módulos implementados"""
+
         return self._excecute_and_parse(command, expected_string)
     
     
@@ -148,16 +230,6 @@ class OltDeviceBase(ABC):
 
     def _snmp_query(self, oid: str) -> any:
         """ Ejecuta las consultas SNMP desde la OID entregada"""
-
-        """ task = snmp.get_request.apply_async(args=[
-            self._connection_pars.get('host'), 
-            [oid], 
-            self._connection_pars.get('snmp_write_com'),
-            self._connection_pars.get('snmp_port')
-            ], queue='olt'
-        )
-        result = task.get(disable_sync_subtasks=False)
-        return result """
 
         task = snmp.get_request(
             self._connection_pars.get('host'), 

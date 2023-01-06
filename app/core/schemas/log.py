@@ -6,7 +6,7 @@ from datetime import datetime
 
 class ActionLogResponse(BaseModel):
     id: int
-    olt_id: int
+    olt_ext_id: int
     olt_name: str
     agent_email: str
     onu: str

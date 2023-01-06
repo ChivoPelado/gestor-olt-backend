@@ -48,7 +48,7 @@ def get_agents(db_session: Session, skip: int = 0, limit: int = 100) -> List[Age
         List[Agent]: Lista de Agentes registrados en la base de datos
     """
 
-    return db_session.query(Agent).offset(skip).limit(limit).all()
+    return db_session.query(Agent).all()
 
 
 

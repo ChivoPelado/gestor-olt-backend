@@ -495,6 +495,9 @@ class Huawei(OltDeviceBase):
 
         return result.get(get_onu_running)
 
+    def show_onu_general_status(self, onu: IOnu):
+        pass
+
 
    ############################################################
     # Helper Methods 
@@ -593,6 +596,10 @@ class Huawei(OltDeviceBase):
     def __repr__(self) -> str:
         return self.hardware_ver
    
-    
+
+############################################################
+# REGISTRO DE MODULO
+############################################################
+
 def register() -> None:
     factory.register("huawei", Huawei)

@@ -96,10 +96,35 @@ class Port(Base):
     operation_status = Column(String, nullable=False, default="n/a")
     description = Column(String)
     tx_power = Column(String, nullable=False, default="n/a")
-    onu_count = Column(Integer, nullable=False, default=0)
-    average_onu_signal = Column(Integer, nullable=False, default=0)
+    # onu_count = Column(Integer, nullable=False, default=0)
+    # average_onu_signal = Column(Integer, nullable=False, default=0)
 
     onus = relationship("Onu", backref="port", cascade="all,delete")
+
+    @hybrid_property
+    def average_onu_signal(self):
+        average_signal: float
+        try:
+            average_signal = sum(float(onu.signal_1310) for onu in self.onus) / len(self.onus)
+        except ZeroDivisionError:
+            average_signal = 0
+            
+        return average_signal
+
+
+    @hybrid_property
+    def onu_count(self):
+        try:
+            count = len(self.onus) 
+        except Exception as err:
+            print(err)
+            count = 0
+
+        return count
+
+    @onu_count.expression
+    def onu_count(self, cls):
+        return select(func.count(1)).where(Onu.olt_id == cls.id).label('onu_count')
 
     @hybrid_property
     def online_onu_count(self):

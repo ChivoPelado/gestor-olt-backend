@@ -477,7 +477,7 @@ class Zte(OltDeviceBase):
 
         return True
 
-    def show_onu_running_config(self, onu: IOnu):
+    def show_onu_running_config(self, onu: IOnu) -> str:
 
         onu_interface = f"gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}"
 
@@ -500,20 +500,35 @@ class Zte(OltDeviceBase):
         except Exception as error:
             print(error)
 
-        print(response)
         return response
 
 
-    def show_onu_power_attn(self, onu: IOnu):
+    def show_onu_general_status(self, onu: IOnu):
 
         onu_interface = f'gpon-onu_{onu.shelf}/{onu.slot}/{onu.port_no}:{onu.index}'
         commands = []
     
-        commands += [self.command['enter_configutation_mode']]
-        commands += [self.command['get_onu_power_attn'] % onu_interface]
+        pwer_atten = self.command['get_onu_power_attn'] % onu_interface
+        mac_info = self.command['get_onu_mac_info'] % onu_interface
+        detail_info = self.command['get_onu_detail_info'] % onu_interface
 
-        result = super().excecute(commands, expect_string='[#\?$]')
-        return result.get((self.command['get_onu_power_attn'] % onu_interface))
+        try:
+            commands += [self.command['enter_configutation_mode']]
+            commands += [pwer_atten]
+            commands += [mac_info]
+            commands += [detail_info]
+            commands += [self.command['exit_mode']]
+
+            result = super().excecute(commands, expect_string='[#\?$]')
+
+            response = f"# Atenuación de ONT: \n {result.get(pwer_atten)}\n\
+# Información general de la ONT\n{result.get(detail_info)}\n\
+# Infornación de dirección MAC\n{result.get(mac_info)}"
+
+        except Exception as error:
+            print(error)
+
+        return response     
 
 
     ############################################################
@@ -607,6 +622,11 @@ class Zte(OltDeviceBase):
     
     def __repr__(self) -> str:
             return self.hardware_ver
+
+
+############################################################
+# REGISTRO DE MODULO
+############################################################
 
 def register() -> None:
     """Registro de módulo"""

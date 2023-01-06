@@ -118,6 +118,9 @@ class OnuResponse(BaseModel):
     index: int
     onu_type_name: str
     serial_no: str
+    region_name: str
+    zone_name: str
+    nap_name: str
     vlan: int
     onu_mode: str
     upload_speed: str
